@@ -9,7 +9,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from bot.database.base import Base
 
 if TYPE_CHECKING:
-    from bot.database.models.download import Download
+    from bot.database.download.model import Download
 
 
 class User(Base):

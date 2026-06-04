@@ -2,15 +2,15 @@ from sqlalchemy import func, select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from bot.database.models import User
-from bot.database.schemas import UserCreateSchema
+from bot.database.user.model import User
+from bot.database.user.schemas import UserCreate
 
 
 async def get_user(session: AsyncSession, user_id: int) -> User | None:
     return await session.get(User, user_id)
 
 
-async def get_or_create_user(session: AsyncSession, dto: UserCreateSchema) -> User:
+async def upsert_user(session: AsyncSession, dto: UserCreate) -> User:
     base_stmt = insert(User).values(user_id=dto.user_id, username=dto.username)
     stmt = base_stmt.on_conflict_do_update(
         index_elements=["user_id"],

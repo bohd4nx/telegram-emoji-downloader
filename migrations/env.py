@@ -8,7 +8,8 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from bot.core.config import config as app_config
 from bot.database.base import Base  # noqa: F401
-from bot.database.models import Download, User  # noqa: F401
+from bot.database.download.model import Download  # noqa: F401
+from bot.database.user.model import User  # noqa: F401
 
 _pg_url = f"postgresql+asyncpg://{app_config.POSTGRES_USER}:{app_config.POSTGRES_PASSWORD}@{app_config.POSTGRES_HOST}:{app_config.POSTGRES_PORT}/{app_config.POSTGRES_DB}"
 

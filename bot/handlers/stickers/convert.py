@@ -4,8 +4,8 @@ from aiogram_i18n import I18nContext
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from bot.core import logger
-from bot.database.crud import add_download, get_or_create_user
-from bot.database.schemas import DownloadCreateSchema, UserCreateSchema
+from bot.database.download import DownloadCreate, add_download
+from bot.database.user import UserCreate, upsert_user
 from bot.services import download_and_convert, pack_zip, send_result, status_message
 
 router = Router(name=__name__)
@@ -29,7 +29,5 @@ async def handle_sticker(message: Message, i18n: I18nContext, session: AsyncSess
 
     user = message.from_user
     if user:
-        await get_or_create_user(session, UserCreateSchema(user_id=user.id, username=user.username))
-        await add_download(
-            session, DownloadCreateSchema(user_id=user.id, content_type="sticker", content_id=message.sticker.file_id)
-        )
+        await upsert_user(session, UserCreate(user_id=user.id, username=user.username))
+        await add_download(session, DownloadCreate(user_id=user.id, content_type="sticker", content_id=message.sticker.file_id))

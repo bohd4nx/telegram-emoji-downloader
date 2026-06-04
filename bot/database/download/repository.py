@@ -1,11 +1,11 @@
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from bot.database.models import Download
-from bot.database.schemas import DownloadCreateSchema
+from bot.database.download.model import Download
+from bot.database.download.schemas import DownloadCreate
 
 
-async def add_download(session: AsyncSession, dto: DownloadCreateSchema) -> None:
+async def add_download(session: AsyncSession, dto: DownloadCreate) -> None:
     session.add(Download(user_id=dto.user_id, content_type=dto.content_type, content_id=dto.content_id))
     await session.commit()
 

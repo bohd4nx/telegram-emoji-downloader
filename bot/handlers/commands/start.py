@@ -5,7 +5,7 @@ from aiogram.utils.markdown import html_decoration  # type: ignore[attr-defined]
 from aiogram_i18n import I18nContext
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from bot.database.crud import get_total_downloads
+from bot.database.download import get_total_downloads
 
 router = Router(name=__name__)
 

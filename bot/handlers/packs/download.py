@@ -4,8 +4,8 @@ from aiogram_i18n import I18nContext
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from bot.core import logger
-from bot.database.crud import add_download, get_or_create_user
-from bot.database.schemas import DownloadCreateSchema, UserCreateSchema
+from bot.database.download import DownloadCreate, add_download
+from bot.database.user import UserCreate, upsert_user
 from bot.services import pack_zip, send_result, status_message
 
 from .processor import get_pack_items, process_items
@@ -42,5 +42,5 @@ async def handle_pack(message: Message, i18n: I18nContext, session: AsyncSession
 
     user = message.from_user
     if user:
-        await get_or_create_user(session, UserCreateSchema(user_id=user.id, username=user.username))
-        await add_download(session, DownloadCreateSchema(user_id=user.id, content_type="pack", content_id=pack_name))
+        await upsert_user(session, UserCreate(user_id=user.id, username=user.username))
+        await add_download(session, DownloadCreate(user_id=user.id, content_type="pack", content_id=pack_name))
