@@ -1,4 +1,5 @@
 from aiogram import Dispatcher, F, Router
+from aiogram.exceptions import TelegramBadRequest
 from aiogram.types import ErrorEvent, Message
 from aiogram_i18n import I18nContext
 
@@ -24,4 +25,7 @@ def setup_error_handlers(dp: Dispatcher) -> None:
                 event.exception.__traceback__,
             ),
         )
-        await message.reply(i18n.get("processing-failed"))
+        try:
+            await message.reply(i18n.get("processing-failed"))
+        except TelegramBadRequest:
+            pass

@@ -1,7 +1,9 @@
 import io
 import zipfile
+from contextlib import suppress
 
 from aiogram.enums import ChatAction
+from aiogram.exceptions import TelegramBadRequest
 from aiogram.types import BufferedInputFile, Message
 from aiogram_i18n import I18nContext
 
@@ -50,7 +52,10 @@ async def send_result(
     for idx, data in enumerate(archives, 1):
         zip_name = f"{base_name} (part {idx}).zip" if total > 1 else f"{base_name}.zip"
         await message.bot.send_chat_action(message.chat.id, ChatAction.UPLOAD_DOCUMENT)
-        await message.reply_document(
-            document=BufferedInputFile(data, filename=zip_name),
-            caption=caption,
-        )
+        with suppress(TelegramBadRequest):
+            await message.bot.send_document(
+                chat_id=message.chat.id,
+                document=BufferedInputFile(data, filename=zip_name),
+                caption=caption,
+                reply_to_message_id=message.message_id,
+            )

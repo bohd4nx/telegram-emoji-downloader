@@ -12,7 +12,9 @@ from bot.core.constants import LOTTIE_MANIFEST
 
 def _decompress(data: bytes) -> bytes:
     # decompress gzip or zlib data based on the magic bytes, since TGS files can be either.
-    if len(data) >= 2 and data[:2] == b"\x1f\x8b":
+    if len(data) < 2:
+        raise ValueError(f"Data too short to decompress ({len(data)} bytes)")
+    if data[:2] == b"\x1f\x8b":
         return gzip.decompress(data)
     return zlib.decompress(data)
 
