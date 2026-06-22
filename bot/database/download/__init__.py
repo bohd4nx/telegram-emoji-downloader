@@ -1,5 +1,5 @@
 from .model import Download
-from .repository import add_download, get_download_by_id, get_total_downloads, get_user_downloads
+from .repository import add_download, get_total_downloads
 from .schemas import DownloadCreate, DownloadRead
 
 __all__ = [
@@ -7,7 +7,5 @@ __all__ = [
     "DownloadCreate",
     "DownloadRead",
     "add_download",
-    "get_download_by_id",
     "get_total_downloads",
-    "get_user_downloads",
 ]

@@ -1,13 +1,9 @@
-from sqlalchemy import func, select
+from sqlalchemy import func
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from bot.database.user.model import User
 from bot.database.user.schemas import UserCreate
-
-
-async def get_user(session: AsyncSession, user_id: int) -> User | None:
-    return await session.get(User, user_id)
 
 
 async def upsert_user(session: AsyncSession, dto: UserCreate) -> User:
@@ -22,7 +18,3 @@ async def upsert_user(session: AsyncSession, dto: UserCreate) -> User:
     user = (await session.scalars(stmt)).one()
     await session.commit()
     return user
-
-
-async def get_all_users(session: AsyncSession) -> list[User]:
-    return list(await session.scalars(select(User)))

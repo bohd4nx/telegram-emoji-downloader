@@ -2,16 +2,14 @@ import asyncio
 from logging.config import fileConfig
 from typing import Any
 
-from alembic import context
 from sqlalchemy import pool
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
+from alembic import context
 from bot.core.config import config as app_config
 from bot.database.base import Base  # noqa: F401
 from bot.database.download.model import Download  # noqa: F401
 from bot.database.user.model import User  # noqa: F401
-
-_pg_url = f"postgresql+asyncpg://{app_config.POSTGRES_USER}:{app_config.POSTGRES_PASSWORD}@{app_config.POSTGRES_HOST}:{app_config.POSTGRES_PORT}/{app_config.POSTGRES_DB}"
 
 config = context.config
 
@@ -20,7 +18,7 @@ if config.config_file_name is not None:
 
 target_metadata = Base.metadata
 
-config.set_main_option("sqlalchemy.url", _pg_url)
+config.set_main_option("sqlalchemy.url", app_config.DATABASE_URL)
 
 
 def run_migrations_offline() -> None:

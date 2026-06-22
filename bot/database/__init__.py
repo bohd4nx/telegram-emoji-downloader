@@ -4,11 +4,9 @@ from .download import (
     DownloadCreate,
     DownloadRead,
     add_download,
-    get_download_by_id,
     get_total_downloads,
-    get_user_downloads,
 )
-from .user import User, UserCreate, UserRead, get_all_users, get_user, upsert_user
+from .user import User, UserCreate, UserRead, upsert_user
 
 __all__ = [
     "Download",
@@ -20,11 +18,7 @@ __all__ = [
     "UserRead",
     "add_download",
     "close_db",
-    "get_all_users",
-    "get_download_by_id",
     "get_total_downloads",
-    "get_user",
-    "get_user_downloads",
     "init_db",
     "upsert_user",
 ]

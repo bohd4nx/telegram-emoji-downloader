@@ -3,10 +3,8 @@ from sqlalchemy.orm import DeclarativeBase
 
 from bot.core import config
 
-DATABASE_URL = f"postgresql+asyncpg://{config.POSTGRES_USER}:{config.POSTGRES_PASSWORD}@{config.POSTGRES_HOST}:{config.POSTGRES_PORT}/{config.POSTGRES_DB}"
-
 engine = create_async_engine(
-    DATABASE_URL,
+    config.DATABASE_URL,
     echo=False,
     pool_size=10,
     max_overflow=20,

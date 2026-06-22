@@ -1,49 +1,55 @@
+# Virtual Environments
+.venv/
+venv/
+env/
+ENV/
+
 # Python
 __pycache__/
 *.py[cod]
+*.pyd
 *.so
+.Python
 
 # Build & Distribution
 build/
 dist/
+develop-eggs/
 *.egg-info/
 *.egg
 .eggs/
-wheels/
 
-# Cache
+# Testing & Coverage
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# Type Checking & Linting
 .mypy_cache/
+.dmypy.json
+dmypy.json
 .ruff_cache/
-
-# Virtual Environment
-.venv/
-venv/
-env/
-
-# Database
-*.db
-*.db-*
-*.sqlite
-*.sqlite3
-
-# Environment & Secrets
-.env
-.env.local
-*.prod.yml
-*prod
 
 # Logs
 logs/
 *.log
 
-# IDE
+# Environment & Secrets
+.env
+.env.local
+.env.*.local
+
+# Docker
+docker-compose.*.yml
+
+# Patches
+*.patch
 .vscode/
 .idea/
 *.swp
 *.swo
-
-# Local patches
-*.patch
+*~
 
 # OS
 .DS_Store

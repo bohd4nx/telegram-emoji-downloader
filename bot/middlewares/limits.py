@@ -26,14 +26,14 @@ class RateLimitMiddleware(BaseMiddleware):
         if not user:
             return await handler(event, data)
 
+        # If user is rate limited, send alert and return
         if user.id in self._users:
             i18n: I18nContext | None = data.get("i18n")
-            if not i18n:
-                return None
-            text = i18n.get("rate-limit-alert", seconds=config.RATE_LIMIT_COOLDOWN)
-            if isinstance(event, Update) and event.message:
+            if i18n and isinstance(event, Update) and event.message:
+                text = i18n.get("rate-limit-alert", seconds=config.RATE_LIMIT_COOLDOWN)
                 await event.message.reply(text)
             return None
 
+        # Mark user as having sent a request and proceed
         self._users[user.id] = True
         return await handler(event, data)

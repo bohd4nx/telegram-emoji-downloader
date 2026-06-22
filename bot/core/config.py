@@ -24,5 +24,10 @@ class Config:
         self.POSTGRES_PORT: str = os.getenv("POSTGRES_PORT", "5432")
         self.POSTGRES_DB: str = os.getenv("POSTGRES_DB", "emoji-saver")
 
+        self.DATABASE_URL: str = os.getenv(
+            "DATABASE_URL",
+            f"postgresql+asyncpg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}",
+        )
+
 
 config = Config()
