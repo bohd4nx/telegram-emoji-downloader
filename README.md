@@ -3,9 +3,9 @@
 
 # EmojiSaver
 
-[![Demo](https://img.shields.io/badge/Demo-@EmojiSaverBot-blue?style=flat&label=Demo)](https://t.me/EmojiSaverBot)
 [![Stars](https://img.shields.io/github/stars/bohd4nx/EmojiSaver?style=flat&color=blue&label=Stars)](https://github.com/bohd4nx/EmojiSaver/stargazers)
-[![License](https://img.shields.io/github/license/bohd4nx/EmojiSaver?style=flat&color=blue&label=License)](LICENSE)
+[![Forks](https://img.shields.io/github/forks/bohd4nx/EmojiSaver?style=flat&color=blue&label=Forks)](https://github.com/bohd4nx/EmojiSaver/forks)
+[![Demo](https://img.shields.io/badge/Demo-@EmojiSaverBot-blue?style=flat&label=Demo)](https://t.me/EmojiSaverBot)
 
 Telegram bot that downloads and converts **custom emoji**, **stickers**, and full packs to TGS, JSON, Lottie, and PNG.
 
