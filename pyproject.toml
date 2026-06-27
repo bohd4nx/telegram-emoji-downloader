@@ -1,9 +1,10 @@
 [project]
 name = "emojisaver-bot"
-version = "2026.2.1"
-description = "Telegram bot for downloading and converting emoji and stickers"
-requires-python = ">=3.12"
+version = "2026.2.2"
+description = "Telegram bot that downloads and converts custom emoji, stickers, and full packs to TGS, JSON, Lottie, and PNG formats"
+requires-python = ">=3.11"
 authors = [{ name = "bohd4nx" }]
+
 dependencies = [
     "aiogram>=3.25.0",
     "aiogram_i18n>=1.4",
@@ -28,7 +29,7 @@ include = ["bot*"]
 
 [tool.ruff]
 line-length = 128
-target-version = "py312"
+target-version = "py311"
 
 [tool.ruff.lint]
 # E — pycodestyle errors, F — pyflakes, W — warnings, I — isort, UP — pyupgrade
@@ -37,7 +38,7 @@ select = ["E", "F", "W", "I", "UP"]
 ignore = ["E501"]
 
 [tool.mypy]
-python_version = "3.12"
+python_version = "3.11"
 strict = true
 explicit_package_bases = true
 exclude = ["alembic/", "build/"]

@@ -1,19 +1,15 @@
 <div align="center">
+  <img src="https://www.bohd4n.dev/assets/projects/StickersDownloader.svg" alt="EmojiSaver" width="96" height="96" style="border-radius: 20px;"><br><br>
 
-  <img src="https://www.bohd4n.dev/assets/projects/StickersDownloader.svg" alt="EmojiSaver" width="120" height="120">
+# EmojiSaver
 
-  <h1>Sticker & Emoji Downloader</h1>
+[![Demo](https://img.shields.io/badge/Demo-@EmojiSaverBot-blue?style=flat&label=Demo)](https://t.me/EmojiSaverBot)
+[![Stars](https://img.shields.io/github/stars/bohd4nx/EmojiSaver?style=flat&color=blue&label=Stars)](https://github.com/bohd4nx/EmojiSaver/stargazers)
+[![License](https://img.shields.io/github/license/bohd4nx/EmojiSaver?style=flat&color=blue&label=License)](LICENSE)
 
-  <p>
-    <b>Telegram bot that downloads and converts custom emoji, stickers, and full packs to TGS, JSON, Lottie, and PNG formats.</b>
-  </p>
+Telegram bot that downloads and converts **custom emoji**, **stickers**, and full packs to TGS, JSON, Lottie, and PNG.
 
-[![Python](https://img.shields.io/badge/Python-3.12+-3776AB?style=flat&logo=python&logoColor=white)](https://python.org)
-[![Demo Bot](https://img.shields.io/badge/Demo-@EmojiSaverBot-2CA5E0?style=flat&logo=telegram&logoColor=white)](https://t.me/EmojiSaverBot)
-[![Donate TON](https://img.shields.io/badge/Donate-TON-0098EA?style=flat&logo=ton&logoColor=white)](https://app.tonkeeper.com/transfer/UQCppfw5DxWgdVHf3zkmZS8k1mt9oAUYxQLwq2fz3nhO8No5)
-[![Stars](https://img.shields.io/github/stars/bohd4nx/EmojiSaver?style=flat&color=yellow)](https://github.com/bohd4nx/EmojiSaver/stargazers)
-
-[Report Bug](https://github.com/bohd4nx/EmojiSaver/issues) · [Request Feature](https://github.com/bohd4nx/EmojiSaver/issues)
+**[@EmojiSaverBot](https://t.me/EmojiSaverBot)** · **[Report Bug](https://github.com/bohd4nx/EmojiSaver/issues)**
 
 </div>
 
@@ -22,12 +18,10 @@
 ## Features
 
 - Extract custom (premium) emoji from messages
-- Convert stickers to TGS, JSON, Lottie, and PNG formats
 - Download full sticker and emoji packs via `t.me` links
-- Auto-detect file format by magic bytes with extension fallback
+- Convert to TGS, JSON, Lottie, and PNG formats
 - Auto-split large archives into 45 MB parts
-- Progress updates during pack processing
-- Multi-language support (English and Russian)
+- Russian and English, auto-detected from Telegram locale
 
 ---
 
@@ -37,10 +31,10 @@
 git clone https://github.com/bohd4nx/EmojiSaver.git
 cd EmojiSaver
 pip install -e .
-cp .env.example .env
+cp .env.example .env # Edit .env with your bot token and other settings
 ```
 
-Edit `.env` with your credentials, then run:
+Edit `.env`, then:
 
 ```bash
 python main.py
@@ -48,15 +42,7 @@ python main.py
 
 ---
 
-## Usage
-
-Send any of the following to the bot:
-
-- A **sticker** — returns a ZIP with all converted formats
-- A **message containing custom emoji** — extracts and converts each emoji
-- A **pack link** (`https://t.me/addstickers/...` or `https://t.me/addemoji/...`) — downloads and converts the entire pack
-
-### Output Formats
+## Output Formats
 
 | Format | Extension | Notes                                  |
 | ------ | --------- | -------------------------------------- |
@@ -65,37 +51,20 @@ Send any of the following to the bot:
 | Lottie | `.lottie` | Compressed Lottie (LottieFiles format) |
 | PNG    | `.png`    | First frame, 512×512 px                |
 
-Non-TGS formats (WebM, WebP, MP4, GIF, etc.) are saved as-is without conversion.
+Non-TGS formats (WebM, WebP, MP4, GIF, etc.) are passed through as-is.
 
 ---
 
 ## Docker
 
-Copy `.env.example` to `.env` and fill in your credentials, then:
-
 ```bash
+cp .env.example .env
 docker compose up -d
 ```
 
-This starts a PostgreSQL container alongside the bot. The database is persisted in a named Docker volume.
-
 ```bash
-docker compose logs -f    # live logs
-docker compose restart    # restart
-docker compose down       # stop and remove containers
-docker compose down -v    # stop and remove containers + database volume
+docker compose logs -f     # live logs
+docker compose restart     # restart
+docker compose down        # stop
+docker compose down -v     # stop + wipe database
 ```
-
----
-
-## License
-
-This project is provided as-is for educational purposes.
-
----
-
-<div align="center">
-
-Made with ❤️ by [@bohd4nx](https://t.me/bohd4nx)
-
-</div>
