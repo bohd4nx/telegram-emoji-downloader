@@ -34,11 +34,14 @@ pip install -e .
 cp .env.example .env # Edit .env with your bot token and other settings
 ```
 
-Edit `.env`, then:
+Edit `.env`, then apply the database migrations and start the bot:
 
 ```bash
+alembic upgrade head
 python main.py
 ```
+
+Tests: `pip install -e ".[dev]" && pytest`.
 
 ---
 
