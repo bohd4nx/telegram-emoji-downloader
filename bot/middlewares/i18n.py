@@ -1,32 +1,18 @@
-from collections.abc import Awaitable, Callable
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
-from aiogram import BaseMiddleware
-from aiogram.types import TelegramObject
+from aiogram.types import User
+from aiogram_i18n.managers import BaseManager
 
-from bot.core import logger
 from bot.core.constants import DEFAULT_LOCALE, SUPPORTED_LOCALES
 
-if TYPE_CHECKING:
-    from aiogram_i18n import I18nContext
 
+class TelegramLocaleManager(BaseManager):
+    """Picks the locale from the user's Telegram language, falling back to the default one."""
 
-class LocaleMiddleware(BaseMiddleware):
-    async def __call__(
-        self,
-        handler: Callable[[TelegramObject, dict[str, Any]], Awaitable[Any]],
-        event: TelegramObject,
-        data: dict[str, Any],
-    ) -> Any:
-        i18n: I18nContext | None = data.get("i18n")
-        user = data.get("event_from_user")
+    async def get_locale(self, event_from_user: User | None = None, **_: Any) -> str:
+        code = event_from_user.language_code if event_from_user else None
+        # users may have language codes we don't ship translations for (or none at all)
+        return code if code in SUPPORTED_LOCALES else (self.default_locale or DEFAULT_LOCALE)
 
-        if i18n and user:
-            try:
-                # user may have unsupported language codes, so we normalize to the default locale.
-                locale = user.language_code if user.language_code in SUPPORTED_LOCALES else DEFAULT_LOCALE
-                await i18n.set_locale(locale)
-            except Exception as exc:
-                logger.debug("Failed to set locale for user %s: %s", user.id, exc)
-
-        return await handler(event, data)
+    async def set_locale(self, locale: str) -> None:
+        raise RuntimeError("The locale is derived from the Telegram user and can't be set")

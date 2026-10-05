@@ -1,61 +1,75 @@
 import io
+import re
 import zipfile
-from contextlib import suppress
 
+from aiogram import Bot
 from aiogram.enums import ChatAction
-from aiogram.exceptions import TelegramBadRequest
-from aiogram.types import BufferedInputFile, Message
-from aiogram_i18n import I18nContext
+from aiogram.types import BufferedInputFile, Message, ReplyParameters
 
 from bot.core.constants import MAX_ARCHIVE_SIZE
 
+from .downloader import StickerFiles
 
-def pack_zip(files: dict[str, bytes]) -> list[bytes]:
-    archives = []
-    current_buffer = io.BytesIO()
-    current_zip = zipfile.ZipFile(current_buffer, "w", zipfile.ZIP_DEFLATED)
+# pack/sticker set titles are attacker-controlled (anyone can name a pack anything);
+# strip control chars (e.g. CR/LF) and path separators so they can't break the
+# Content-Disposition header aiogram builds from this filename.
+_UNSAFE_FILENAME_CHARS = re.compile(r"[\x00-\x1f\x7f/\\]")
+_MAX_TITLE_LENGTH = 100
 
-    for name, data in files.items():
-        # group converted variants into a sub-folder (e.g. abc123/abc123.tgs)
-        # when the archive contains more than 2 files (i.e. a pack, not a single sticker).
-        zip_path = f"{name.split('.')[0]}/{name}" if len(files) > 2 else name
-        current_zip.writestr(zip_path, data)
 
-        # check current archive size after each write and start a new part if needed.
-        if current_buffer.tell() > MAX_ARCHIVE_SIZE:
-            current_zip.close()
-            archives.append(current_buffer.getvalue())
+def build_archives(items: list[StickerFiles]) -> list[bytes]:
+    """Zip the items into parts of at most ~MAX_ARCHIVE_SIZE; an item is never split across parts.
 
-            # reset buffer for the next archive part
-            current_buffer = io.BytesIO()
-            current_zip = zipfile.ZipFile(current_buffer, "w", zipfile.ZIP_DEFLATED)
+    Blocking: call it through `asyncio.to_thread`. A single item is stored flat,
+    several items each get their own folder.
+    """
+    archives: list[bytes] = []
+    buffer = io.BytesIO()
+    archive = zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED)
+    has_entries = False
 
-    current_zip.close()
-    archives.append(current_buffer.getvalue())
+    for item in items:
+        for file_name, data in item.files.items():
+            archive.writestr(file_name if len(items) == 1 else f"{item.name}/{file_name}", data)
+        has_entries = True
 
+        if buffer.tell() > MAX_ARCHIVE_SIZE:
+            archive.close()
+            archives.append(buffer.getvalue())
+            buffer = io.BytesIO()
+            archive = zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED)
+            has_entries = False
+
+    archive.close()
+    if has_entries:
+        archives.append(buffer.getvalue())
     return archives
 
 
-async def send_result(
+def archive_name(title: str | None, username: str | None) -> str:
+    base = f"@{username}"
+    clean = _UNSAFE_FILENAME_CHARS.sub("", title).strip()[:_MAX_TITLE_LENGTH] if title else ""
+    return f"{clean} by {base}" if clean else base
+
+
+async def send_archives(
+    bot: Bot,
     message: Message,
     archives: list[bytes],
-    i18n: I18nContext,
-    has_unsupported: bool = False,
-    filename: str | None = None,
+    *,
+    title: str | None = None,
+    caption: str | None = None,
 ) -> None:
-    assert message.bot
-    bot_info = await message.bot.me()
-    base_name = f"{filename} by @{bot_info.username}" if filename else f"@{bot_info.username}"
-    caption = i18n.get("format-warning") if has_unsupported else None
+    """Reply to `message` with every archive part. Errors propagate to the caller."""
+    name = archive_name(title, (await bot.me()).username)
     total = len(archives)
 
     for idx, data in enumerate(archives, 1):
-        zip_name = f"{base_name} (part {idx}).zip" if total > 1 else f"{base_name}.zip"
-        await message.bot.send_chat_action(message.chat.id, ChatAction.UPLOAD_DOCUMENT)
-        with suppress(TelegramBadRequest):
-            await message.bot.send_document(
-                chat_id=message.chat.id,
-                document=BufferedInputFile(data, filename=zip_name),
-                caption=caption,
-                reply_to_message_id=message.message_id,
-            )
+        file_name = f"{name} (part {idx}).zip" if total > 1 else f"{name}.zip"
+        await bot.send_chat_action(message.chat.id, ChatAction.UPLOAD_DOCUMENT)
+        await bot.send_document(
+            chat_id=message.chat.id,
+            document=BufferedInputFile(data, filename=file_name),
+            caption=caption,
+            reply_parameters=ReplyParameters(message_id=message.message_id, allow_sending_without_reply=True),
+        )

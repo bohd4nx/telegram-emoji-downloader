@@ -10,8 +10,8 @@ from bot.core import logger
 from bot.core.constants import LOTTIE_MANIFEST
 
 
-def _decompress(data: bytes) -> bytes:
-    # decompress gzip or zlib data based on the magic bytes, since TGS files can be either.
+def decompress(data: bytes) -> bytes:
+    # TGS files are gzip- or zlib-compressed Lottie JSON, tell them apart by magic bytes.
     if len(data) < 2:
         raise ValueError(f"Data too short to decompress ({len(data)} bytes)")
     if data[:2] == b"\x1f\x8b":
@@ -19,35 +19,38 @@ def _decompress(data: bytes) -> bytes:
     return zlib.decompress(data)
 
 
-async def tgs_to_json(tgs_data: bytes) -> bytes | None:
+def _to_lottie(json_data: bytes) -> bytes:
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as zf:
+        zf.writestr("manifest.json", json.dumps(LOTTIE_MANIFEST))
+        zf.writestr("animations/animation.json", json_data)
+    return buffer.getvalue()
+
+
+def _to_png(json_data: bytes, size: int = 512) -> bytes:
+    anim = LottieAnimation.from_data(json_data.decode("utf-8"))
+    img = anim.render_pillow_frame(frame_num=0, width=size, height=size)
+    buffer = io.BytesIO()
+    img.save(buffer, format="PNG")
+    return buffer.getvalue()
+
+
+def convert_tgs(data: bytes) -> dict[str, bytes]:
+    """Convert a TGS file to {extension: content} for json, lottie and png.
+
+    Blocking and CPU-bound: call it through `asyncio.to_thread`. A format that fails to convert is
+    logged and left out of the result, so the dict is empty only if the file isn't a valid TGS.
+    """
     try:
-        return _decompress(tgs_data)
+        json_data = decompress(data)
     except Exception as exc:
-        logger.error("TGS to JSON failed: %s", exc)
-        return None
+        logger.warning("TGS decompress failed: %s", exc)
+        return {}
 
-
-async def tgs_to_lottie(tgs_data: bytes) -> bytes | None:
-    try:
-        json_data = _decompress(tgs_data)
-        buffer = io.BytesIO()
-        with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as zf:
-            zf.writestr("manifest.json", json.dumps(LOTTIE_MANIFEST))
-            zf.writestr("animations/animation.json", json_data)
-        return buffer.getvalue()
-    except Exception as exc:
-        logger.error("TGS to Lottie failed: %s", exc)
-        return None
-
-
-async def tgs_to_png(tgs_data: bytes, width: int = 512, height: int = 512) -> bytes | None:
-    try:
-        json_str = _decompress(tgs_data).decode("utf-8")
-        anim = LottieAnimation.from_data(json_str)
-        img = anim.render_pillow_frame(frame_num=0, width=width, height=height)
-        buffer = io.BytesIO()
-        img.save(buffer, format="PNG")
-        return buffer.getvalue()
-    except Exception as exc:
-        logger.error("TGS to PNG failed: %s", exc)
-        return None
+    result = {"json": json_data}
+    for ext, convert in (("lottie", _to_lottie), ("png", _to_png)):
+        try:
+            result[ext] = convert(json_data)
+        except Exception as exc:
+            logger.warning("TGS to %s failed: %s", ext, exc)
+    return result

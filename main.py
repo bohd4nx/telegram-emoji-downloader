@@ -1,68 +1,53 @@
 import argparse
 import asyncio
 
-from aiogram import Bot, Dispatcher
+from aiogram import Bot
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from aiogram_i18n import I18nMiddleware
 from aiogram_i18n.cores import FluentCompileCore
 
-from bot.core import config, logger, setup_bot_profile, setup_logging
+from bot.core import ResilientDispatcher, config, logger, setup_bot_profile, setup_logging
 from bot.core.constants import DEFAULT_LOCALE
-from bot.database import close_db, init_db
+from bot.database import close_db
 from bot.handlers import router as handlers_router
-from bot.handlers import setup_error_handlers
-from bot.middlewares import (
-    DatabaseMiddleware,
-    LocaleMiddleware,
-    RateLimitMiddleware,
-)
+from bot.middlewares import DatabaseMiddleware, RateLimitMiddleware, TelegramLocaleManager
+
+
+def build_dispatcher() -> ResilientDispatcher:
+    dp = ResilientDispatcher()
+    dp.include_router(handlers_router)
+
+    # also registers the core/manager startup and shutdown hooks on the dispatcher
+    I18nMiddleware(
+        core=FluentCompileCore(path="locales/{locale}/LC_MESSAGES"),
+        manager=TelegramLocaleManager(default_locale=DEFAULT_LOCALE),
+        default_locale=DEFAULT_LOCALE,
+    ).setup(dispatcher=dp)
+
+    dp.update.middleware(DatabaseMiddleware())
+    dp.message.middleware(RateLimitMiddleware())
+    return dp
 
 
 async def main(setup: bool = False) -> None:
     setup_logging()
-    await init_db()
 
     bot = Bot(
         token=config.BOT_TOKEN,
-        default=DefaultBotProperties(
-            parse_mode=ParseMode.HTML,
-            link_preview_is_disabled=True,
-        ),
+        default=DefaultBotProperties(parse_mode=ParseMode.HTML, link_preview_is_disabled=True),
     )
 
-    if setup:
-        # push commands, descriptions and short descriptions to Telegram, then exit
-        await setup_bot_profile(bot)
-        logger.info("Bot updated successfully.")
-        await bot.session.close()
-        return
-
-    i18n_core = FluentCompileCore(path="locales/{locale}/LC_MESSAGES")
-    await i18n_core.startup()
-
-    dp = Dispatcher()
-    dp.include_router(handlers_router)
-
-    i18n = I18nMiddleware(core=i18n_core, default_locale=DEFAULT_LOCALE)
-    i18n.setup(dispatcher=dp)
-
-    dp.update.middleware(DatabaseMiddleware())
-    dp.update.middleware(LocaleMiddleware())
-    dp.update.middleware(RateLimitMiddleware())
-
-    setup_error_handlers(dp)
-
     try:
-        await dp.start_polling(
-            bot,
-            polling_timeout=30,
-            handle_as_tasks=True,
-            tasks_concurrency_limit=100,
-            close_bot_session=True,
-        )
+        if setup:
+            # push commands, descriptions and short descriptions to Telegram, then exit
+            await setup_bot_profile(bot)
+            logger.info("Bot updated successfully.")
+            return
+
+        await build_dispatcher().start_polling(bot, polling_timeout=30, handle_as_tasks=True, tasks_concurrency_limit=100)
     finally:
-        await i18n.core.shutdown()
+        await bot.session.close()
         await close_db()
 
 
