@@ -9,7 +9,7 @@ dependencies = [
     "aiogram>=3.25.0",
     "aiogram_i18n>=1.4",
     "fluent_compiler>=1.1",
-    "python-dotenv>=1.2.2",
+    "pydantic-settings>=2.6.0",
     "sqlalchemy[asyncio]>=2.0.44",
     "asyncpg>=0.30.0",
     "alembic>=1.18.0",
@@ -22,7 +22,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["ruff", "mypy"]
+dev = ["ruff", "mypy", "pytest", "pytest-asyncio"]
 
 [tool.setuptools.packages.find]
 include = ["bot*"]
@@ -36,6 +36,10 @@ target-version = "py311"
 select = ["E", "F", "W", "I", "UP"]
 # E501 — line too long (covered by line-length above)
 ignore = ["E501"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
 
 [tool.mypy]
 python_version = "3.11"

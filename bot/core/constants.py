@@ -7,8 +7,12 @@ SUPPORTED_LOCALES = frozenset({"en", "ru"})
 # maximum allowed archive size to prevent oversized uploads.
 MAX_ARCHIVE_SIZE = 45 * 1024 * 1024  # 45 MB
 
-# file formats that should not be processed or converted by the system.
-NON_CONVERTIBLE_FORMATS = frozenset({"webm", "webp", "mp4", "gif", "png", "jpg", "jpeg", "mkv"})
+# how many files of one request are downloaded at the same time.
+DOWNLOAD_CONCURRENCY = 8
+
+# how many requests (packs, emoji batches) are processed at the same time across all users;
+# bounds memory since every request holds its files and archives in RAM.
+MAX_ACTIVE_JOBS = 4
 
 # metadata for exported Lottie animations to keep generation details consistent.
 LOTTIE_MANIFEST = {

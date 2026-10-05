@@ -1,4 +1,4 @@
-from .base import SessionLocal, close_db, init_db
+from .base import SessionLocal, close_db
 from .download import (
     Download,
     DownloadCreate,
@@ -19,6 +19,5 @@ __all__ = [
     "add_download",
     "close_db",
     "get_total_downloads",
-    "init_db",
     "upsert_user",
 ]
