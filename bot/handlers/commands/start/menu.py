@@ -1,7 +1,7 @@
 from aiogram import Router
-from aiogram.filters import Command, CommandStart
+from aiogram.filters import CommandStart
 from aiogram.types import Message
-from aiogram.utils.markdown import html_decoration  # type: ignore[attr-defined]
+from aiogram.utils.text_decorations import html_decoration
 from aiogram_i18n import I18nContext
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -20,8 +20,3 @@ async def start_command(message: Message, i18n: I18nContext, session: AsyncSessi
             downloads=await get_total_downloads(session),
         )
     )
-
-
-@router.message(Command("help"))
-async def help_command(message: Message, i18n: I18nContext) -> None:
-    await message.answer(i18n.get("help-message"))
