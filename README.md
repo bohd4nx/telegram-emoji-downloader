@@ -3,7 +3,7 @@
 # EmojiSaver
 
 **Telegram bot that downloads custom emoji, stickers and full packs.**<br>
-TGS · JSON · Lottie · PNG
+TGS · JSON · Lottie · PNG · GIF · MP4
 
 [![Demo](https://img.shields.io/badge/Try-@EmojiSaverBot-2CA5E0?style=flat&logo=telegram&logoColor=white)](https://t.me/EmojiSaverBot)
 [![Python](https://img.shields.io/badge/Python-3.14-3776AB?style=flat&logo=python&logoColor=white)](https://www.python.org/)
@@ -22,7 +22,7 @@ TGS · JSON · Lottie · PNG
 - Custom (premium) emoji from any message
 - Stickers, sent or forwarded
 - Full packs by `t.me/addstickers/…` or `t.me/addemoji/…` link
-- Archives over 45 MB are split into parts
+- Archives over 48 MB are split into parts
 - English and Russian, set automatically and switchable with `/language`
 
 ## How it works
@@ -36,7 +36,7 @@ flowchart LR
     W -->|zip archives| U
 ```
 
-The bot only queues the request. The worker downloads the files, converts TGS in a process pool and sends the archives back. Each user can have one job in the queue at a time. Jobs interrupted by a crash are retried on restart.
+The bot only queues the request. The worker downloads the files, converts them (Pillow and rlottie in a process pool, ffmpeg for video) and sends the archives back. Each user can have one job in the queue at a time. Jobs interrupted by a crash are retried on restart.
 
 ## Quick start
 
@@ -58,19 +58,18 @@ docker compose down -v      # stop and delete the database
 
 ## Output formats
 
-| Format | Extension | Notes                                  |
-| ------ | --------- | -------------------------------------- |
-| TGS    | `.tgs`    | Original Telegram animated format      |
-| JSON   | `.json`   | Uncompressed Lottie animation          |
-| Lottie | `.lottie` | Compressed Lottie (LottieFiles format) |
-| PNG    | `.png`    | First frame, 512×512 px                |
+| Source | You get                                                                          |
+| ------ | -------------------------------------------------------------------------------- |
+| TGS    | the original `.tgs`, `.json` (Lottie), `.lottie` (compressed), `.png` and `.gif` |
+| WebM   | the original `.webm`, `.mp4` and `.gif`                                          |
+| WebP   | the original `.webp` and `.png`, or `.gif` if the sticker is animated            |
 
-Other formats (WebM, WebP, MP4, GIF) are sent unchanged. If a TGS can't be converted, the original is sent with a notice.
+PNG is the first frame at 512×512 px, GIF is 256 px wide at up to 25 fps (animated TGS stickers are capped at 150 frames). MP4 has no transparency. Anything else Telegram may send is delivered unchanged. If a file can't be converted, the original is sent with a notice.
 
 ## Development
 
 ```bash
-uv sync
+uv sync                   # WebM conversion needs ffmpeg on PATH
 uv run ruff check . --fix
 uv run ruff format .
 uv run mypy . --explicit-package-base

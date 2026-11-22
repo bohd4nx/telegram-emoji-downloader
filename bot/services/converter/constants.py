@@ -12,6 +12,16 @@ LOTTIE_MANIFEST = {
 }
 
 PNG_SIZE: int = 512
+GIF_SIZE: int = 256
+GIF_FPS: int = 25
+# Browsers clamp GIF frame delays below 20 ms, so a higher rate would only inflate the file.
+GIF_MAX_FRAMES: int = 150
+# TGS is untrusted input: cap the inflated size so a tiny archive can't exhaust memory.
+MAX_DECOMPRESSED_SIZE: int = 20 * 1024 * 1024
+
+FFMPEG: str = "ffmpeg"
+FFMPEG_TIMEOUT: float = 60.0
+MP4_CRF: int = 23
 
 CONVERTER_WORKERS: int = min(4, os.process_cpu_count() or 1)
 
