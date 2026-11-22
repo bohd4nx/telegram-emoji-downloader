@@ -1,3 +1,13 @@
+"""Alembic environment.
+
+Commands:
+  alembic revision --autogenerate -m "describe change"  # generate migration
+  alembic upgrade head     # apply all
+  alembic downgrade -1     # roll back one step
+  alembic current          # show current revision
+  alembic history          # show history
+"""
+
 import asyncio
 from logging.config import fileConfig
 from typing import Any
@@ -6,10 +16,10 @@ from sqlalchemy import pool
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from alembic import context
-from bot.core.config import config as app_config
-from bot.database.base import Base  # noqa: F401
-from bot.database.download.model import Download  # noqa: F401
-from bot.database.user.model import User  # noqa: F401
+from bot.core.config import settings
+from bot.database.base import Base
+from bot.database.download.models import Download  # noqa: F401
+from bot.database.user.models import User  # noqa: F401
 
 config = context.config
 
@@ -18,7 +28,7 @@ if config.config_file_name is not None:
 
 target_metadata = Base.metadata
 
-config.set_main_option("sqlalchemy.url", app_config.DATABASE_URL)
+config.set_main_option("sqlalchemy.url", settings.DATABASE_URL.get_secret_value())
 
 
 def run_migrations_offline() -> None:
@@ -34,10 +44,7 @@ def run_migrations_offline() -> None:
 
 
 def do_run_migrations(connection: Any) -> None:
-    context.configure(
-        connection=connection,
-        target_metadata=target_metadata,
-    )
+    context.configure(connection=connection, target_metadata=target_metadata)
     with context.begin_transaction():
         context.run_migrations()
 

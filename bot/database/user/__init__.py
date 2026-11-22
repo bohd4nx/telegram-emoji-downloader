@@ -1,10 +1,11 @@
-from .model import User
-from .repository import upsert_user
-from .schemas import UserCreate, UserRead
+from .models import User
+from .repositories import get_user_language, set_user_language, upsert_user
+from .schemas import UserCreate
 
 __all__ = [
     "User",
     "UserCreate",
-    "UserRead",
+    "get_user_language",
+    "set_user_language",
     "upsert_user",
 ]
