@@ -1,17 +1,19 @@
 import asyncio
+import logging
 from pathlib import Path
 
 import filetype  # type: ignore[import-untyped]
 from aiogram import Bot
-from aiogram.exceptions import TelegramBadRequest, TelegramRetryAfter
+from aiogram.exceptions import TelegramAPIError
 
-from bot.core import logger
 from bot.database import StickerRef
 from bot.services.converter import convert_tgs_async
 from bot.services.converter.constants import GZIP_MAGIC, ZLIB_CMF, ZLIB_FLG
 
-from .constants import DOWNLOAD_CONCURRENCY, DOWNLOAD_MAX_RETRIES
+from .constants import DOWNLOAD_CONCURRENCY
 from .schemas import ProgressCallback, StickerFiles
+
+logger = logging.getLogger(__name__)
 
 
 def detect_format(data: bytes, fallback_path: str = "") -> str:
@@ -24,16 +26,10 @@ def detect_format(data: bytes, fallback_path: str = "") -> str:
 
 
 async def download_sticker(bot: Bot, sticker: StickerRef) -> tuple[bytes, str] | None:
-    for attempt in range(1, DOWNLOAD_MAX_RETRIES + 1):
-        try:
-            file = await bot.get_file(sticker.file_id)
-            buffer = await bot.download_file(file.file_path or "")
-            return (buffer.read(), file.file_path or "") if buffer else None
-        except TelegramRetryAfter as exc:
-            if attempt == DOWNLOAD_MAX_RETRIES:
-                raise
-            await asyncio.sleep(exc.retry_after)
-    return None
+    file = await bot.get_file(sticker.file_id)
+    path = file.file_path or ""
+    buffer = await bot.download_file(path)
+    return (buffer.read(), path) if buffer else None
 
 
 async def fetch_sticker(bot: Bot, sticker: StickerRef) -> StickerFiles | None:
@@ -54,8 +50,8 @@ async def fetch_sticker(bot: Bot, sticker: StickerRef) -> StickerFiles | None:
             files |= {f"{name}.{conv_ext}": content for conv_ext, content in converted.items()}
 
         return StickerFiles(name=name, files=files, converted=bool(converted))
-    except TelegramBadRequest as exc:
-        logger.warning("Telegram rejected file %s: %s", sticker.file_unique_id, exc)
+    except TelegramAPIError as exc:
+        logger.warning("Telegram refused file %s: %s", sticker.file_unique_id, exc)
     except Exception:  # noqa: BLE001 - one bad sticker must not abort the pack
         logger.exception("Failed to process %s", sticker.file_unique_id)
     return None

@@ -41,6 +41,7 @@ select = [
     "G",        # logging format
     "BLE",      # blind except
     "S",        # bandit
+    "PLC0415",  # imports belong at the top of the module
 ]
 ignore = ["E501"]
 

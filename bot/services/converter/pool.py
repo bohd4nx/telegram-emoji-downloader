@@ -1,11 +1,14 @@
 import asyncio
+import logging
 from concurrent.futures import ProcessPoolExecutor
 from concurrent.futures.process import BrokenProcessPool
 
-from bot.core import logger
+from bot.core import setup_logging
 
 from .constants import CONVERTER_WORKERS
 from .tgs import convert_tgs
+
+logger = logging.getLogger(__name__)
 
 # Rendering is CPU-bound: separate processes keep it off the event loop and off the GIL.
 _pool: ProcessPoolExecutor | None = None
@@ -14,7 +17,7 @@ _pool: ProcessPoolExecutor | None = None
 def get_pool() -> ProcessPoolExecutor:
     global _pool
     if _pool is None:
-        _pool = ProcessPoolExecutor(max_workers=CONVERTER_WORKERS)
+        _pool = ProcessPoolExecutor(max_workers=CONVERTER_WORKERS, initializer=setup_logging)
     return _pool
 
 

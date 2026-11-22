@@ -1,11 +1,11 @@
 import asyncio
+import logging
 import time
 from contextlib import suppress
 
 from aiogram import Bot
 from aiogram.exceptions import TelegramAPIError
 
-from bot.core import logger
 from bot.database import Job, SessionLocal, StickerRef, add_download, delete_job
 from bot.database.download import ContentKind, DownloadCreate
 from bot.services.language import i18n_core
@@ -13,6 +13,8 @@ from bot.services.language import i18n_core
 from .archive import build_archives, send_archives
 from .constants import PROGRESS_EDIT_INTERVAL
 from .downloader import fetch_all
+
+logger = logging.getLogger(__name__)
 
 
 async def process_job(bot: Bot, job: Job) -> None:
@@ -31,13 +33,23 @@ async def process_job(bot: Bot, job: Job) -> None:
         with suppress(TelegramAPIError):
             await bot.send_message(job.chat_id, i18n_core.get("processing-failed", job.language))
 
+    if delivered:
+        await record_download(job)
     async with SessionLocal() as session, session.begin():
-        if delivered:
+        await delete_job(session, job.id)
+
+
+async def record_download(job: Job) -> None:
+    # Kept apart from deleting the job: if the stats insert fails, the job must still leave the queue,
+    # otherwise a restart would deliver the same archives again.
+    try:
+        async with SessionLocal() as session, session.begin():
             await add_download(
                 session,
                 DownloadCreate(user_id=job.user_id, content_type=ContentKind(job.kind), content_id=job.content_id),
             )
-        await delete_job(session, job.id)
+    except Exception:  # noqa: BLE001 - statistics are best-effort
+        logger.exception("Job %s: could not record the download", job.id)
 
 
 async def deliver(bot: Bot, job: Job) -> bool:

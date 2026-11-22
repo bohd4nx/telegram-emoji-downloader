@@ -1,7 +1,11 @@
 import argparse
 import asyncio
+import logging
 
-from bot.core import logger
+from bot.app import run as run_bot
+from bot.worker import run as run_worker
+
+logger = logging.getLogger(__name__)
 
 
 def parse_args() -> argparse.Namespace:
@@ -14,12 +18,8 @@ def parse_args() -> argparse.Namespace:
 
 async def main(args: argparse.Namespace) -> None:
     if args.worker:
-        from bot.worker import run as run_worker
-
         await run_worker()
     else:
-        from bot.app import run as run_bot
-
         await run_bot(cleanup=args.cleanup)
 
 
@@ -28,7 +28,8 @@ if __name__ == "__main__":
 
     try:
         asyncio.run(main(args))
-    except KeyboardInterrupt, SystemExit:
+    except KeyboardInterrupt, asyncio.CancelledError:
         pass
-    except Exception:  # noqa: BLE001 - top-level guard, log and exit instead of a raw traceback
+    except Exception:  # noqa: BLE001 - top-level guard: log once and exit non-zero
         logger.exception("Unexpected error")
+        raise SystemExit(1) from None

@@ -27,27 +27,34 @@ async def enqueue_download(
         await message.reply(i18n.get("processing-failed"))
         return
 
+    # Sent before queuing: the worker needs the message id to report progress on.
     many = len(stickers) > 1
     status = await message.reply(i18n.get("processing-pack" if many else "processing", current=0, total=len(stickers)))
 
-    await upsert_user(
-        session,
-        UserCreate(user_id=user.id, username=user.username, language=resolve_telegram_language(user.language_code)),
-    )
-    queued = await enqueue_job(
-        session,
-        JobCreate(
-            user_id=user.id,
-            chat_id=message.chat.id,
-            message_id=message.message_id,
-            status_message_id=status.message_id,
-            language=i18n.locale,
-            kind=kind,
-            content_id=content_id,
-            title=title,
-            stickers=[StickerRef(file_id=s.file_id, file_unique_id=s.file_unique_id) for s in stickers],
-        ),
-    )
+    try:
+        await upsert_user(
+            session,
+            UserCreate(user_id=user.id, username=user.username, language=resolve_telegram_language(user.language_code)),
+        )
+        queued = await enqueue_job(
+            session,
+            JobCreate(
+                user_id=user.id,
+                chat_id=message.chat.id,
+                message_id=message.message_id,
+                status_message_id=status.message_id,
+                language=i18n.locale,
+                kind=kind,
+                content_id=content_id,
+                title=title,
+                stickers=[StickerRef(file_id=s.file_id, file_unique_id=s.file_unique_id) for s in stickers],
+            ),
+        )
+    except Exception:
+        with suppress(TelegramAPIError):
+            await status.delete()
+        raise
+
     if not queued:
         with suppress(TelegramAPIError):
             await status.delete()

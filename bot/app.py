@@ -1,10 +1,11 @@
+import logging
+
 from aiogram import Dispatcher
 
 from bot.core import (
     POLLING_TASKS_CONCURRENCY_LIMIT,
     POLLING_TIMEOUT,
     cleanup_bot_commands,
-    logger,
     setup_bot_commands,
     setup_logging,
 )
@@ -14,11 +15,14 @@ from bot.handlers import commands, content, menu
 from bot.middlewares import DatabaseMiddleware, setup_i18n
 from bot.services.language import i18n_core
 
+logger = logging.getLogger(__name__)
+
 
 async def build_dispatcher() -> Dispatcher:
     await i18n_core.startup()
 
     dp = Dispatcher()
+    # menu.router goes last: its catch-all handler takes whatever the other routers skip.
     dp.include_routers(commands.router, content.router, menu.router)
     dp.update.middleware(DatabaseMiddleware())
     setup_i18n(dp)

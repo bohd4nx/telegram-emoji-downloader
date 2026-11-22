@@ -1,4 +1,5 @@
 import asyncio
+import logging
 
 from aiogram import Bot
 from aiogram.client.session.middlewares.base import BaseRequestMiddleware, NextRequestMiddlewareType
@@ -6,9 +7,9 @@ from aiogram.exceptions import TelegramRetryAfter
 from aiogram.methods import TelegramMethod
 from aiogram.methods.base import Response, TelegramType
 
-from bot.core import logger
-
 from .constants import FLOOD_RETRY_BUFFER, MAX_FLOOD_RETRIES
+
+logger = logging.getLogger(__name__)
 
 
 class RetryRequestMiddleware(BaseRequestMiddleware):
@@ -39,4 +40,4 @@ class RetryRequestMiddleware(BaseRequestMiddleware):
                 )
                 await asyncio.sleep(delay)
 
-        raise AssertionError("unreachable")  # pragma: no cover
+        raise AssertionError("unreachable")

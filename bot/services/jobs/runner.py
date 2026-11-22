@@ -1,12 +1,14 @@
 import asyncio
+import logging
 
 from aiogram import Bot
 
-from bot.core import logger
 from bot.database import Job, SessionLocal, claim_job, requeue_interrupted
 from bot.services.delivery import process_job
 
 from .constants import JOB_MAX_ATTEMPTS, POLL_INTERVAL, WORKER_CONCURRENCY
+
+logger = logging.getLogger(__name__)
 
 
 async def next_job() -> Job | None:
@@ -29,6 +31,7 @@ async def poll(bot: Bot) -> None:
 
     try:
         while True:
+            # Take a slot before claiming, so a job is never claimed that this worker has no capacity to run.
             await slots.acquire()
             try:
                 job = await next_job()
@@ -51,6 +54,7 @@ async def poll(bot: Bot) -> None:
 
 
 async def run_queue(bot: Bot) -> None:
+    # Assumes one worker process: any job still marked as processing at startup belongs to a dead run.
     async with SessionLocal() as session, session.begin():
         await requeue_interrupted(session, JOB_MAX_ATTEMPTS)
     await poll(bot)

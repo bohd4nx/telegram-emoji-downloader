@@ -1,17 +1,19 @@
 import gzip
 import io
 import json
+import logging
 import zipfile
 import zlib
 
 from rlottie_python import LottieAnimation  # type: ignore[attr-defined]
 
-from bot.core import logger
-
 from .constants import GZIP_MAGIC, LOTTIE_MANIFEST, PNG_SIZE
+
+logger = logging.getLogger(__name__)
 
 
 def decompress(data: bytes) -> bytes:
+    # TGS is Lottie JSON compressed with either gzip or zlib; the magic bytes tell which.
     if len(data) < 2:
         raise ValueError(f"Data too short to decompress ({len(data)} bytes)")
     if data[:2] == GZIP_MAGIC:

@@ -7,7 +7,6 @@ from aiogram.types import Message, Sticker
 from aiogram_i18n import I18nContext
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from bot.core import logger
 from bot.database.download import ContentKind
 from bot.services.jobs import enqueue_download
 
@@ -25,7 +24,6 @@ async def handle_pack(
     except TelegramBadRequest as exc:
         if "STICKERSET_INVALID" not in str(exc):
             raise
-        logger.warning("Pack not found: %s", pack_name)
         await message.reply(i18n.get("pack-not-found"))
         return
 

@@ -20,6 +20,3 @@ def setup_logging() -> None:
     logging.getLogger("aiogram.dispatcher").setLevel(logging.INFO)
     logging.getLogger("aiogram.event").setLevel(logging.ERROR)
     logging.getLogger("sqlalchemy.engine").setLevel(logging.WARNING)
-
-
-logger = logging.getLogger(__name__)

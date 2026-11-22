@@ -1,3 +1,4 @@
+import logging
 from collections.abc import Awaitable, Callable
 from typing import Any
 
@@ -5,9 +6,10 @@ from aiogram import BaseMiddleware, Dispatcher
 from aiogram.types import TelegramObject
 from aiogram_i18n import I18nContext, I18nMiddleware
 
-from bot.core import logger
 from bot.database import SessionLocal, get_user_language
 from bot.services.language import DEFAULT_LANGUAGE, i18n_core, resolve_user_locale
+
+logger = logging.getLogger(__name__)
 
 
 class LocaleMiddleware(BaseMiddleware):
