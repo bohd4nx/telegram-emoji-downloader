@@ -1,15 +1,17 @@
 <div align="center">
-  <img src="https://www.bohd4n.dev/assets/projects/StickersDownloader.svg" alt="EmojiSaver" width="96" height="96" style="border-radius: 20px;"><br><br>
 
 # EmojiSaver
 
+**Telegram bot that downloads custom emoji, stickers and full packs.**<br>
+TGS · JSON · Lottie · PNG
+
+[![Demo](https://img.shields.io/badge/Try-@EmojiSaverBot-2CA5E0?style=flat&logo=telegram&logoColor=white)](https://t.me/EmojiSaverBot)
+[![Python](https://img.shields.io/badge/Python-3.14-3776AB?style=flat&logo=python&logoColor=white)](https://www.python.org/)
+[![aiogram](https://img.shields.io/badge/aiogram-3-blue?style=flat)](https://github.com/aiogram/aiogram)
 [![Stars](https://img.shields.io/github/stars/bohd4nx/EmojiSaver?style=flat&color=blue&label=Stars)](https://github.com/bohd4nx/EmojiSaver/stargazers)
 [![Forks](https://img.shields.io/github/forks/bohd4nx/EmojiSaver?style=flat&color=blue&label=Forks)](https://github.com/bohd4nx/EmojiSaver/forks)
-[![Demo](https://img.shields.io/badge/Demo-@EmojiSaverBot-blue?style=flat&label=Demo)](https://t.me/EmojiSaverBot)
 
-Telegram bot that downloads and converts **custom emoji**, **stickers**, and full packs to TGS, JSON, Lottie, and PNG.
-
-**[@EmojiSaverBot](https://t.me/EmojiSaverBot)** · **[Report Bug](https://github.com/bohd4nx/EmojiSaver/issues)**
+[Features](#features) · [How it works](#how-it-works) · [Quick start](#quick-start) · [Output formats](#output-formats) · [Development](#development) · [Report a bug](https://github.com/bohd4nx/EmojiSaver/issues)
 
 </div>
 
@@ -17,35 +19,44 @@ Telegram bot that downloads and converts **custom emoji**, **stickers**, and ful
 
 ## Features
 
-- Extract custom (premium) emoji from messages
-- Download full sticker and emoji packs via `t.me` links
-- Convert to TGS, JSON, Lottie, and PNG formats
-- Auto-split large archives into 45 MB parts
-- Russian and English, auto-detected from Telegram locale
+- Custom (premium) emoji from any message
+- Stickers, sent or forwarded
+- Full packs by `t.me/addstickers/…` or `t.me/addemoji/…` link
+- Archives over 45 MB are split into parts
+- English and Russian, set automatically and switchable with `/language`
 
----
+## How it works
 
-## Installation
+```mermaid
+flowchart LR
+    U([User]) -->|sticker / emoji / pack link| B[Bot<br/>aiogram polling]
+    B -->|enqueue job| Q[(Postgres)]
+    W[Worker] -->|claim job<br/>SKIP LOCKED| Q
+    W -->|download + convert<br/>process pool| T([Telegram API])
+    W -->|zip archives| U
+```
+
+The bot only queues the request. The worker downloads the files, converts TGS in a process pool and sends the archives back. Each user can have one job in the queue at a time. Jobs interrupted by a crash are retried on restart.
+
+## Quick start
 
 ```bash
 git clone https://github.com/bohd4nx/EmojiSaver.git
 cd EmojiSaver
-pip install -e .
-cp .env.example .env # Edit .env with your bot token and other settings
+cp .env.example .env        # set BOT_TOKEN
+docker compose up -d
 ```
 
-Edit `.env`, then apply the database migrations and start the bot:
+Compose starts Postgres, runs migrations, then starts the bot and the worker.
 
 ```bash
-alembic upgrade head
-python main.py
+docker compose logs -f      # logs
+docker compose restart
+docker compose down         # stop
+docker compose down -v      # stop and delete the database
 ```
 
-Tests: `pip install -e ".[dev]" && pytest`.
-
----
-
-## Output Formats
+## Output formats
 
 | Format | Extension | Notes                                  |
 | ------ | --------- | -------------------------------------- |
@@ -54,20 +65,13 @@ Tests: `pip install -e ".[dev]" && pytest`.
 | Lottie | `.lottie` | Compressed Lottie (LottieFiles format) |
 | PNG    | `.png`    | First frame, 512×512 px                |
 
-Non-TGS formats (WebM, WebP, MP4, GIF, etc.) are passed through as-is.
+Other formats (WebM, WebP, MP4, GIF) are sent unchanged. If a TGS can't be converted, the original is sent with a notice.
 
----
-
-## Docker
+## Development
 
 ```bash
-cp .env.example .env
-docker compose up -d
-```
-
-```bash
-docker compose logs -f     # live logs
-docker compose restart     # restart
-docker compose down        # stop
-docker compose down -v     # stop + wipe database
+uv sync
+uv run ruff check . --fix
+uv run ruff format .
+uv run mypy . --explicit-package-base
 ```
