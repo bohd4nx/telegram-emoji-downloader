@@ -28,7 +28,7 @@ if __name__ == "__main__":
 
     try:
         asyncio.run(main(args))
-    except (KeyboardInterrupt, asyncio.CancelledError):
+    except KeyboardInterrupt, asyncio.CancelledError:
         pass
     except Exception:  # noqa: BLE001 - top-level guard: log once and exit non-zero
         logger.exception("Unexpected error")
