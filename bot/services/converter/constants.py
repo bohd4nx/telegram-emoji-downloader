@@ -16,5 +16,6 @@ PNG_SIZE: int = 512
 CONVERTER_WORKERS: int = min(4, os.process_cpu_count() or 1)
 
 GZIP_MAGIC: bytes = b"\x1f\x8b"
+# A zlib stream starts with CMF 0x78 followed by an FLG byte that encodes the compression level.
 ZLIB_CMF: int = 0x78
 ZLIB_FLG: tuple[int, ...] = (0x01, 0x5E, 0x9C, 0xDA)

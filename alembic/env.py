@@ -1,13 +1,3 @@
-"""Alembic environment.
-
-Commands:
-  alembic revision --autogenerate -m "describe change"  # generate migration
-  alembic upgrade head     # apply all
-  alembic downgrade -1     # roll back one step
-  alembic current          # show current revision
-  alembic history          # show history
-"""
-
 import asyncio
 from logging.config import fileConfig
 from typing import Any
@@ -18,6 +8,8 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 from alembic import context
 from bot.core.config import settings
 from bot.database.base import Base
+
+# Imported so every model registers its table on Base.metadata for autogenerate.
 from bot.database.download.models import Download  # noqa: F401
 from bot.database.job.models import Job  # noqa: F401
 from bot.database.user.models import User  # noqa: F401

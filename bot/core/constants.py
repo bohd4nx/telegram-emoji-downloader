@@ -8,6 +8,7 @@ LOCALES_PATH: str = str(ROOT_PATH / "locales" / "{locale}" / "LC_MESSAGES")
 POLLING_TIMEOUT: int = 30
 POLLING_TASKS_CONCURRENCY_LIMIT: int = 100
 
+# The empty key is the fallback list for users whose language has no list of its own.
 BOT_COMMANDS: dict[str, list[BotCommand]] = {
     "": [
         BotCommand(command="start", description="🏠 Main menu | Главное меню"),

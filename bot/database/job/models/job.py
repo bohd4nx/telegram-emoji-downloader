@@ -24,6 +24,7 @@ class Job(Base):
     kind: Mapped[str] = mapped_column(String(50), nullable=False)
     content_id: Mapped[str | None] = mapped_column(Text, nullable=True)
     title: Mapped[str | None] = mapped_column(Text, nullable=True)
+    # Only file ids are stored: the worker uses the same bot token, so they stay valid there.
     stickers: Mapped[list[dict[str, Any]]] = mapped_column(JSONB, nullable=False)
     status: Mapped[str] = mapped_column(String(20), default=JobStatus.QUEUED, nullable=False, index=True)
     attempts: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
