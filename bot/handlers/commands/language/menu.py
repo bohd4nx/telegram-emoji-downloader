@@ -34,9 +34,6 @@ async def set_language_callback(
     await callback.answer()
 
     if isinstance(callback.message, Message):
-        # Picking the current language again leaves the text identical, which Telegram rejects.
+        # Two quick taps on the same button: the second edit is identical and Telegram rejects it.
         with suppress(TelegramBadRequest):
-            await callback.message.edit_text(
-                i18n.get("language-changed"),
-                reply_markup=get_language_keyboard(i18n, callback_data.code),
-            )
+            await callback.message.edit_text(i18n.get("language-changed"))
