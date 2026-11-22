@@ -7,19 +7,19 @@ import zlib
 from rlottie_python import LottieAnimation  # type: ignore[attr-defined]
 
 from bot.core import logger
-from bot.core.constants import LOTTIE_MANIFEST
+
+from .constants import GZIP_MAGIC, LOTTIE_MANIFEST, PNG_SIZE
 
 
 def decompress(data: bytes) -> bytes:
-    # TGS files are gzip- or zlib-compressed Lottie JSON, tell them apart by magic bytes.
     if len(data) < 2:
         raise ValueError(f"Data too short to decompress ({len(data)} bytes)")
-    if data[:2] == b"\x1f\x8b":
+    if data[:2] == GZIP_MAGIC:
         return gzip.decompress(data)
     return zlib.decompress(data)
 
 
-def _to_lottie(json_data: bytes) -> bytes:
+def to_lottie(json_data: bytes) -> bytes:
     buffer = io.BytesIO()
     with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as zf:
         zf.writestr("manifest.json", json.dumps(LOTTIE_MANIFEST))
@@ -27,9 +27,9 @@ def _to_lottie(json_data: bytes) -> bytes:
     return buffer.getvalue()
 
 
-def _to_png(json_data: bytes, size: int = 512) -> bytes:
+def to_png(json_data: bytes) -> bytes:
     anim = LottieAnimation.from_data(json_data.decode("utf-8"))
-    img = anim.render_pillow_frame(frame_num=0, width=size, height=size)
+    img = anim.render_pillow_frame(frame_num=0, width=PNG_SIZE, height=PNG_SIZE)
     buffer = io.BytesIO()
     img.save(buffer, format="PNG")
     return buffer.getvalue()
@@ -43,14 +43,14 @@ def convert_tgs(data: bytes) -> dict[str, bytes]:
     """
     try:
         json_data = decompress(data)
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001 - any corrupt input means "not a valid TGS"
         logger.warning("TGS decompress failed: %s", exc)
         return {}
 
     result = {"json": json_data}
-    for ext, convert in (("lottie", _to_lottie), ("png", _to_png)):
+    for ext, convert in (("lottie", to_lottie), ("png", to_png)):
         try:
             result[ext] = convert(json_data)
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001 - keep the formats that did convert
             logger.warning("TGS to %s failed: %s", ext, exc)
     return result
