@@ -10,6 +10,15 @@ from bot.database.download import ContentKind
 from bot.services.language import resolve_telegram_language
 
 
+def sticker_ref(sticker: Sticker) -> StickerRef:
+    effect = sticker.premium_animation
+    return StickerRef(
+        file_id=sticker.file_id,
+        file_unique_id=sticker.file_unique_id,
+        effect_file_id=effect.file_id if effect else None,
+    )
+
+
 async def enqueue_download(
     message: Message,
     i18n: I18nContext,
@@ -47,7 +56,7 @@ async def enqueue_download(
                 kind=kind,
                 content_id=content_id,
                 title=title,
-                stickers=[StickerRef(file_id=s.file_id, file_unique_id=s.file_unique_id) for s in stickers],
+                stickers=[sticker_ref(s) for s in stickers],
             ),
         )
     except Exception:

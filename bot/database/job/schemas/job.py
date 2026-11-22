@@ -6,6 +6,7 @@ from bot.database.download.enums import ContentKind
 class StickerRef(BaseModel):
     file_id: str
     file_unique_id: str
+    effect_file_id: str | None = None
 
 
 class JobCreate(BaseModel):

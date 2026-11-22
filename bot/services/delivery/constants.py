@@ -16,3 +16,6 @@ FALLBACK_EXTENSION: str = "dat"
 UNSAFE_FILENAME_CHARS: str = r'[\x00-\x1f\x7f/\\:*?"<>|]'
 # Most filesystems cap a name at 255 bytes; the rest is left for " by @bot (part N).zip".
 MAX_FILENAME_BYTES: int = 200
+
+# Premium stickers carry a full-screen effect; it is stored next to the sticker under this name suffix.
+EFFECT_SUFFIX: str = "_effect"

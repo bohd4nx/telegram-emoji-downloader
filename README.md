@@ -20,7 +20,7 @@ TGS · JSON · Lottie · PNG · GIF
 ## Features
 
 - Custom (premium) emoji from any message
-- Stickers, sent or forwarded
+- Stickers, sent or forwarded; the full-screen effect of a premium sticker is included as `<name>_effect.*`
 - Full packs by `t.me/addstickers/…` or `t.me/addemoji/…` link
 - Archives over 48 MB are split into parts
 - English and Russian, set automatically and switchable with `/language`
