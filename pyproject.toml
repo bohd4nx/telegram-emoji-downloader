@@ -2,47 +2,53 @@
 name = "emojisaver-bot"
 version = "2026.2.2"
 description = "Telegram bot that downloads and converts custom emoji, stickers, and full packs to TGS, JSON, Lottie, and PNG formats"
-requires-python = ">=3.11"
+requires-python = ">=3.14,<3.15"
 authors = [{ name = "bohd4nx" }]
 
 dependencies = [
-    "aiogram>=3.25.0",
-    "aiogram_i18n>=1.4",
-    "fluent_compiler>=1.1",
-    "pydantic-settings>=2.6.0",
-    "sqlalchemy[asyncio]>=2.0.44",
-    "asyncpg>=0.30.0",
-    "alembic>=1.18.0",
-    "greenlet==3.3.0",
+    "aiogram[i18n]>=3.33.0",
+    "aiogram_i18n[compiler]>=1.5",
+    "pydantic-settings>=2.16.3",
+    "SQLAlchemy[asyncio]>=2.1.9",
+    "asyncpg>=0.32.0",
+    "alembic>=1.20.1",
+    "pydantic>=2.14.4",
     "rlottie-python>=1.3.8",
     "filetype>=1.2.0",
-    "Pillow>=12.0.0",
-    "cachetools>=7.0.0",
-    "pydantic>=2.13.0",
+    "Pillow>=13.0.0",
 ]
 
-[project.optional-dependencies]
-dev = ["ruff", "mypy", "pytest", "pytest-asyncio"]
+[dependency-groups]
+dev = ["mypy", "ruff", "vulture"]
 
-[tool.setuptools.packages.find]
-include = ["bot*"]
+[tool.uv]
+package = false
 
 [tool.ruff]
+target-version = "py314"
 line-length = 128
-target-version = "py311"
 
 [tool.ruff.lint]
-# E — pycodestyle errors, F — pyflakes, W — warnings, I — isort, UP — pyupgrade
-select = ["E", "F", "W", "I", "UP"]
-# E501 — line too long (covered by line-length above)
+select = [
+    "E", "W",   # pycodestyle
+    "F",        # pyflakes
+    "I",        # isort
+    "UP",       # pyupgrade
+    "B",        # bugbear
+    "C4",       # comprehensions
+    "SIM",      # simplify
+    "ASYNC",    # blocking calls in async code
+    "G",        # logging format
+    "BLE",      # blind except
+    "S",        # bandit
+]
 ignore = ["E501"]
 
-[tool.pytest.ini_options]
-asyncio_mode = "auto"
-testpaths = ["tests"]
+[tool.ruff.lint.per-file-ignores]
+"alembic/versions/*.py" = ["S", "BLE"]
 
 [tool.mypy]
-python_version = "3.11"
+python_version = "3.14"
 strict = true
 explicit_package_bases = true
 exclude = ["alembic/", "build/"]
