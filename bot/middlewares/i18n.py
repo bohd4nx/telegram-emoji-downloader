@@ -1,18 +1,39 @@
+from collections.abc import Awaitable, Callable
 from typing import Any
 
-from aiogram.types import User
-from aiogram_i18n.managers import BaseManager
+from aiogram import BaseMiddleware, Dispatcher
+from aiogram.types import TelegramObject
+from aiogram_i18n import I18nContext, I18nMiddleware
 
-from bot.core.constants import DEFAULT_LOCALE, SUPPORTED_LOCALES
+from bot.core import logger
+from bot.database import SessionLocal, get_user_language
+from bot.services.language import DEFAULT_LANGUAGE, i18n_core, resolve_user_locale
 
 
-class TelegramLocaleManager(BaseManager):
-    """Picks the locale from the user's Telegram language, falling back to the default one."""
+class LocaleMiddleware(BaseMiddleware):
+    async def __call__(
+        self,
+        handler: Callable[[TelegramObject, dict[str, Any]], Awaitable[Any]],
+        event: TelegramObject,
+        data: dict[str, Any],
+    ) -> Any:
+        i18n: I18nContext | None = data.get("i18n")
+        user = data.get("event_from_user")
 
-    async def get_locale(self, event_from_user: User | None = None, **_: Any) -> str:
-        code = event_from_user.language_code if event_from_user else None
-        # users may have language codes we don't ship translations for (or none at all)
-        return code if code in SUPPORTED_LOCALES else (self.default_locale or DEFAULT_LOCALE)
+        if i18n and user:
+            try:
+                # Own short-lived session: a long handler must not keep a pooled connection checked out.
+                async with SessionLocal() as session:
+                    stored_language = await get_user_language(session, user.id)
+                await i18n.set_locale(resolve_user_locale(user, stored_language))
+            except Exception:  # noqa: BLE001 - fall back to default locale on any failure
+                logger.exception("Failed to set locale for user %s", user.id)
 
-    async def set_locale(self, locale: str) -> None:
-        raise RuntimeError("The locale is derived from the Telegram user and can't be set")
+        return await handler(event, data)
+
+
+def setup_i18n(dp: Dispatcher) -> I18nMiddleware:
+    i18n = I18nMiddleware(core=i18n_core, default_locale=DEFAULT_LANGUAGE)
+    i18n.setup(dispatcher=dp)
+    dp.update.middleware(LocaleMiddleware())
+    return i18n

@@ -14,6 +14,7 @@ class DatabaseMiddleware(BaseMiddleware):
         event: TelegramObject,
         data: dict[str, Any],
     ) -> Any:
-        async with SessionLocal() as session:
+        # begin() commits on success and rolls back if the handler raises.
+        async with SessionLocal() as session, session.begin():
             data["session"] = session
             return await handler(event, data)
