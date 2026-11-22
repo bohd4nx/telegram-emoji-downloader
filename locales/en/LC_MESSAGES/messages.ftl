@@ -44,13 +44,6 @@ format-warning =
     Some items could not be converted.
     Original files were saved as-is.
 
-processing-error =
-    <tg-emoji emoji-id="5258474669769497337">❌</tg-emoji> <b>Error:</b>
-
-    <code>{$error}</code>
-
-    Please try again later.
-
 processing = <tg-emoji emoji-id="5258514780469075716">📂</tg-emoji> <b>Processing your request...</b>
 
 processing-pack = <tg-emoji emoji-id="5258514780469075716">📂</tg-emoji> <b>Processing: {$current}/{$total}</b>
@@ -65,9 +58,14 @@ pack-not-found =
 
     Check the link and try again.
 
-no-custom-emoji =
-    <tg-emoji emoji-id="5258474669769497337">❌</tg-emoji> <b>Custom (premium) emoji not found</b>
+job-in-progress = <tg-emoji emoji-id="5258474669769497337">❌</tg-emoji> Your previous request is still being processed. Please wait for it to finish.
 
-    Send a message with custom emoji.
+language-select =
+    🌐 <b>Language</b>
 
-rate-limit-alert = <tg-emoji emoji-id="5258474669769497337">❌</tg-emoji> Please wait {$seconds} seconds before sending next request!
+    Choose your preferred language:
+
+language-changed = ✅ Language set to English
+
+lang-en = English
+lang-ru = Русский

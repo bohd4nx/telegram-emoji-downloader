@@ -44,13 +44,6 @@ format-warning =
     Некоторые элементы не удалось конвертировать.
     Оригинальные файлы сохранены как есть.
 
-processing-error =
-    <tg-emoji emoji-id="5258474669769497337">❌</tg-emoji> <b>Ошибка:</b>
-
-    <code>{$error}</code>
-
-    Пожалуйста, попробуйте позже.
-
 processing = <tg-emoji emoji-id="5258514780469075716">📂</tg-emoji> <b>Обрабатываю ваш запрос...</b>
 
 processing-pack = <tg-emoji emoji-id="5258514780469075716">📂</tg-emoji> <b>Обрабатываю: {$current}/{$total}</b>
@@ -65,9 +58,14 @@ pack-not-found =
 
     Проверьте ссылку и попробуйте снова.
 
-no-custom-emoji =
-    <tg-emoji emoji-id="5258474669769497337">❌</tg-emoji> <b>Кастомные (премиум) эмодзи не найдены</b>
+job-in-progress = <tg-emoji emoji-id="5258474669769497337">❌</tg-emoji> Предыдущий запрос ещё обрабатывается. Дождитесь его завершения.
 
-    Отправьте сообщение с кастомными эмодзи.
+language-select =
+    🌐 <b>Язык</b>
 
-rate-limit-alert = <tg-emoji emoji-id="5258474669769497337">❌</tg-emoji> Пожалуйста, подождите {$seconds} секунд перед отправкой следующего запроса!
+    Выберите предпочитаемый язык:
+
+language-changed = ✅ Язык изменён на Русский
+
+lang-en = English
+lang-ru = Русский
