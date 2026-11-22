@@ -1,68 +1,34 @@
 import argparse
 import asyncio
 
-from aiogram import Bot
-from aiogram.client.default import DefaultBotProperties
-from aiogram.enums import ParseMode
-from aiogram_i18n import I18nMiddleware
-from aiogram_i18n.cores import FluentCompileCore
-
-from bot.core import ResilientDispatcher, config, logger, setup_bot_profile, setup_logging
-from bot.core.constants import DEFAULT_LOCALE
-from bot.database import close_db
-from bot.handlers import router as handlers_router
-from bot.middlewares import DatabaseMiddleware, RateLimitMiddleware, TelegramLocaleManager
+from bot.core import logger
 
 
-def build_dispatcher() -> ResilientDispatcher:
-    dp = ResilientDispatcher()
-    dp.include_router(handlers_router)
-
-    # also registers the core/manager startup and shutdown hooks on the dispatcher
-    I18nMiddleware(
-        core=FluentCompileCore(path="locales/{locale}/LC_MESSAGES"),
-        manager=TelegramLocaleManager(default_locale=DEFAULT_LOCALE),
-        default_locale=DEFAULT_LOCALE,
-    ).setup(dispatcher=dp)
-
-    dp.update.middleware(DatabaseMiddleware())
-    dp.message.middleware(RateLimitMiddleware())
-    return dp
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="EmojiSaver Telegram bot")
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument("--cleanup", action="store_true", help="clear bot commands from Telegram and exit")
+    group.add_argument("--worker", action="store_true", help="run the download worker instead of the bot")
+    return parser.parse_args()
 
 
-async def main(setup: bool = False) -> None:
-    setup_logging()
+async def main(args: argparse.Namespace) -> None:
+    if args.worker:
+        from bot.worker import run as run_worker
 
-    bot = Bot(
-        token=config.BOT_TOKEN,
-        default=DefaultBotProperties(parse_mode=ParseMode.HTML, link_preview_is_disabled=True),
-    )
+        await run_worker()
+    else:
+        from bot.app import run as run_bot
 
-    try:
-        if setup:
-            # push commands, descriptions and short descriptions to Telegram, then exit
-            await setup_bot_profile(bot)
-            logger.info("Bot updated successfully.")
-            return
-
-        await build_dispatcher().start_polling(bot, polling_timeout=30, handle_as_tasks=True, tasks_concurrency_limit=100)
-    finally:
-        await bot.session.close()
-        await close_db()
+        await run_bot(cleanup=args.cleanup)
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="EmojiSaver Telegram bot")
-    parser.add_argument(
-        "--setup",
-        action="store_true",
-        help="push bot commands/descriptions to Telegram and exit",
-    )
-    args = parser.parse_args()
+    args = parse_args()
 
     try:
-        asyncio.run(main(setup=args.setup))
-    except (KeyboardInterrupt, SystemExit):
+        asyncio.run(main(args))
+    except KeyboardInterrupt, SystemExit:
         pass
-    except Exception as exc:
-        logger.exception("Unexpected error: %s", exc)
+    except Exception:  # noqa: BLE001 - top-level guard, log and exit instead of a raw traceback
+        logger.exception("Unexpected error")

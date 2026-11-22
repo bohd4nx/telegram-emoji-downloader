@@ -1,6 +1,12 @@
+x-build: &build
+  context: .
+  dockerfile: Dockerfile
+
 services:
   db:
+    container_name: emoji-saver-db
     image: postgres:17-alpine
+    restart: unless-stopped
     env_file:
       - .env
     ports:
@@ -8,26 +14,46 @@ services:
     volumes:
       - postgres_data_local:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER}"]
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 5s
       timeout: 5s
       retries: 5
 
-  bot:
-    build: .
-    restart: unless-stopped
+  migrate:
+    container_name: emoji-saver-migrate
+    image: emoji-saver-bot:latest
+    build: *build
+    restart: no
     env_file:
       - .env
-    environment:
-      POSTGRES_HOST: db
-    command: >
-      sh -c "
-      alembic upgrade head &&
-      python main.py
-      "
+    command: alembic upgrade head
     depends_on:
       db:
         condition: service_healthy
+
+  bot:
+    container_name: emoji-saver-bot
+    image: emoji-saver-bot:latest
+    build: *build
+    restart: unless-stopped
+    env_file:
+      - .env
+    command: python main.py
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+  worker:
+    container_name: emoji-saver-worker
+    image: emoji-saver-bot:latest
+    build: *build
+    restart: unless-stopped
+    env_file:
+      - .env
+    command: python main.py --worker
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
 
 volumes:
   postgres_data_local:
