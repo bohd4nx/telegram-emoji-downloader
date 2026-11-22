@@ -1,16 +1,27 @@
-FROM python:3.12-slim
+FROM python:3.14-slim
 
-ENV PYTHONUNBUFFERED=1
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV TZ=UTC
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    UV_COMPILE_BYTECODE=1 \
+    UV_LINK_MODE=copy \
+    PATH="/app/.venv/bin:$PATH" \
+    TZ=UTC
 
 WORKDIR /app
 
-RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends tzdata \
+    && rm -rf /var/lib/apt/lists/*
 
-COPY pyproject.toml ./
-RUN pip install --no-cache-dir .
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
-COPY . .
+# Dependencies first so this layer only rebuilds when pyproject.toml or uv.lock changes.
+COPY pyproject.toml uv.lock .python-version ./
+RUN uv sync --frozen --no-dev
 
-CMD ["sh", "-c", "alembic upgrade head && python main.py"]
+COPY main.py alembic.ini ./
+COPY bot ./bot
+COPY alembic ./alembic
+COPY locales ./locales
+
+CMD ["python", "main.py"]

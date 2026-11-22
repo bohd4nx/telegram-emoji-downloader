@@ -1,35 +1,44 @@
-# Python
-__pycache__/
-*.py[cod]
-*.egg-info/
-
-# Cache
-.mypy_cache/
-.ruff_cache/
-
-# Virtual Environment
-.venv/
-venv/
-
-# Version control
+# VCS
 .git/
 .gitignore
 
-# Environment & Secrets
+# Python bytecode and caches
+__pycache__/
+*.py[cod]
+*$py.class
+.mypy_cache/
+.ruff_cache/
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# Environment and local-only files
 .env
 .env.local
+.env.prod
 
-# Docker
+# Docker, docs and tooling not needed in the image
 docker-compose*.yml
+Dockerfile
+*.md
 
-# Logs
-logs/
-*.log
-
-# IDE
+# IDE/editor
 .vscode/
 .idea/
+*.swp
+*.swo
+*~
 
-# OS
+# OS files
 .DS_Store
 Thumbs.db
+
+# Logs
+*.log
