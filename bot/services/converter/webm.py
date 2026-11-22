@@ -3,21 +3,12 @@ import logging
 import tempfile
 from pathlib import Path
 
-from .constants import CONVERTER_WORKERS, FFMPEG, FFMPEG_TIMEOUT, GIF_FPS, GIF_SIZE, MP4_CRF
+from .constants import CONVERTER_WORKERS, FFMPEG, FFMPEG_TIMEOUT, GIF_ARGS, MP4_ARGS
 
 logger = logging.getLogger(__name__)
 
 # ffmpeg is already multi-threaded; this only bounds how many run at once on a small box.
 ffmpeg_slots = asyncio.Semaphore(CONVERTER_WORKERS)
-
-# Even dimensions are required by yuv420p; the transparency of VP9 alpha is lost in MP4 by design.
-MP4_ARGS = ["-vf", "scale=trunc(iw/2)*2:trunc(ih/2)*2", "-c:v", "libx264", "-pix_fmt", "yuv420p", "-crf", str(MP4_CRF)]
-GIF_ARGS = [
-    "-filter_complex",
-    f"fps={GIF_FPS},scale='min({GIF_SIZE},iw)':-2:flags=lanczos,split[a][b];[a]palettegen=reserve_transparent=1[p];[b][p]paletteuse",
-    "-loop",
-    "0",
-]
 
 
 async def run_ffmpeg(source: Path, target: Path, args: list[str]) -> bool:

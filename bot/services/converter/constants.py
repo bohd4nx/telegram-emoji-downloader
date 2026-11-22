@@ -13,15 +13,33 @@ LOTTIE_MANIFEST = {
 
 PNG_SIZE: int = 512
 GIF_SIZE: int = 256
-GIF_FPS: int = 25
 # Browsers clamp GIF frame delays below 20 ms, so a higher rate would only inflate the file.
+GIF_FPS: int = 25
 GIF_MAX_FRAMES: int = 150
+DEFAULT_FRAME_MS: int = 40
 # TGS is untrusted input: cap the inflated size so a tiny archive can't exhaust memory.
 MAX_DECOMPRESSED_SIZE: int = 20 * 1024 * 1024
 
 FFMPEG: str = "ffmpeg"
 FFMPEG_TIMEOUT: float = 60.0
 MP4_CRF: int = 23
+
+# yuv420p needs even dimensions; MP4 can't carry the transparency of VP9 alpha, so it is lost there by design.
+MP4_ARGS: list[str] = [
+    "-vf",
+    "scale=trunc(iw/2)*2:trunc(ih/2)*2",
+    "-c:v",
+    "libx264",
+    "-pix_fmt",
+    "yuv420p",
+    "-crf",
+    str(MP4_CRF),
+]
+GIF_FILTER: str = (
+    f"fps={GIF_FPS},scale='min({GIF_SIZE},iw)':-2:flags=lanczos,split[a][b];"
+    "[a]palettegen=reserve_transparent=1[p];[b][p]paletteuse"
+)
+GIF_ARGS: list[str] = ["-filter_complex", GIF_FILTER, "-loop", "0"]
 
 CONVERTER_WORKERS: int = min(4, os.process_cpu_count() or 1)
 

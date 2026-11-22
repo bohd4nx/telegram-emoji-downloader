@@ -19,7 +19,7 @@ EXTENSION = re.compile(EXTENSION_PATTERN)
 
 
 def detect_format(data: bytes, file_path: str = "") -> str:
-    # Telegram names the file by its real type, except that old TGS files sometimes come without a usable suffix.
+    # Magic bytes first: they identify a TGS whatever its path says. Everything else is named by Telegram.
     if len(data) >= 2 and (data[:2] == GZIP_MAGIC or (data[0] == ZLIB_CMF and data[1] in ZLIB_FLG)):
         return "tgs"
     suffix = Path(file_path).suffix.lstrip(".").lower()

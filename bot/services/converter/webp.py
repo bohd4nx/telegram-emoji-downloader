@@ -3,7 +3,7 @@ import logging
 
 from PIL import Image, ImageSequence
 
-from .constants import GIF_MAX_FRAMES
+from .constants import DEFAULT_FRAME_MS, GIF_MAX_FRAMES
 from .gif import encode_gif
 
 logger = logging.getLogger(__name__)
@@ -23,7 +23,7 @@ def convert_webp(data: bytes) -> dict[str, bytes]:
                     if len(frames) >= GIF_MAX_FRAMES:
                         break
                     frames.append(frame.convert("RGBA"))
-                    durations.append(int(frame.info.get("duration", 40)) or 40)
+                    durations.append(int(frame.info.get("duration", DEFAULT_FRAME_MS)) or DEFAULT_FRAME_MS)
                 return {"gif": encode_gif(frames, durations)}
             buffer = io.BytesIO()
             image.convert("RGBA").save(buffer, format="PNG")
