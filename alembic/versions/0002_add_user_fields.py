@@ -1,7 +1,7 @@
 """Add language to users; migrate timestamps to timestamptz.
 
 Revision ID: 0002
-Revises: d894f41bfb7c
+Revises: a1c2e3f4b5d6
 """
 
 import sqlalchemy as sa
@@ -9,7 +9,7 @@ import sqlalchemy as sa
 from alembic import op
 
 revision: str = "0002"
-down_revision: str = "d894f41bfb7c"
+down_revision: str = "a1c2e3f4b5d6"
 
 
 def upgrade() -> None:
