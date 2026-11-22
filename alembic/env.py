@@ -19,6 +19,7 @@ from alembic import context
 from bot.core.config import settings
 from bot.database.base import Base
 from bot.database.download.models import Download  # noqa: F401
+from bot.database.job.models import Job  # noqa: F401
 from bot.database.user.models import User  # noqa: F401
 
 config = context.config
