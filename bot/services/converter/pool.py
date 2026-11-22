@@ -8,7 +8,6 @@ from bot.core import setup_logging
 
 from .constants import CONVERTER_WORKERS
 from .tgs import convert_tgs
-from .webm import convert_webm
 from .webp import convert_webp
 
 logger = logging.getLogger(__name__)
@@ -35,8 +34,6 @@ def shutdown_converter() -> None:
 
 async def convert_async(ext: str, data: bytes) -> dict[str, bytes]:
     """Return the extra formats for a file of type `ext` as {extension: content}; empty if it can't be converted."""
-    if ext == "webm":
-        return await convert_webm(data)
     convert = POOL_CONVERTERS.get(ext)
     if convert is None:
         return {}

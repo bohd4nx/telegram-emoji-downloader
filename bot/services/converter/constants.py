@@ -1,7 +1,7 @@
 import os
 
 LOTTIE_MANIFEST = {
-    "version": "2026.2.1",
+    "version": "2026.3.0",
     "generator": "EmojiSaverBot",
     "author": "https://github.com/bohd4nx",
     "description": ("Telegram bot for extracting and converting animated emoji and stickers into Lottie/JSON/TGS formats"),
@@ -19,23 +19,6 @@ GIF_MAX_FRAMES: int = 150
 DEFAULT_FRAME_MS: int = 40
 # TGS is untrusted input: cap the inflated size so a tiny archive can't exhaust memory.
 MAX_DECOMPRESSED_SIZE: int = 20 * 1024 * 1024
-
-FFMPEG: str = "ffmpeg"
-FFMPEG_TIMEOUT: float = 60.0
-MP4_CRF: int = 23
-
-# One ffmpeg run produces both outputs, so the video is decoded once. yuv420p needs even dimensions,
-# and MP4 can't carry the transparency of VP9 alpha, so it is lost there by design.
-FFMPEG_FILTER: str = (
-    "[0:v]split=2[m][g];"
-    "[m]scale=trunc(iw/2)*2:trunc(ih/2)*2[mp4v];"
-    f"[g]fps={GIF_FPS},scale='min({GIF_SIZE},iw)':-2:flags=lanczos,split[a][b];"
-    "[a]palettegen=reserve_transparent=1[p];[b][p]paletteuse[gifv]"
-)
-FFMPEG_OUTPUTS: list[tuple[str, list[str]]] = [
-    ("mp4", ["-map", "[mp4v]", "-c:v", "libx264", "-pix_fmt", "yuv420p", "-crf", str(MP4_CRF)]),
-    ("gif", ["-map", "[gifv]", "-loop", "0"]),
-]
 
 CONVERTER_WORKERS: int = min(4, os.process_cpu_count() or 1)
 
