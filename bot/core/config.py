@@ -1,30 +1,30 @@
-from pydantic import model_validator
+import logging
+
+from pydantic import SecretStr, ValidationError
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+from .constants import ROOT_PATH
 
-class Config(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
-
-    BOT_TOKEN: str
-    RATE_LIMIT_COOLDOWN: int = 5
-
-    POSTGRES_USER: str = "postgres"
-    POSTGRES_PASSWORD: str = ""
-    POSTGRES_HOST: str = "localhost"
-    POSTGRES_PORT: int = 5432
-    POSTGRES_DB: str = "emoji-saver"
-
-    # a full URL overrides the POSTGRES_* parts when set
-    DATABASE_URL: str = ""
-
-    @model_validator(mode="after")
-    def _build_database_url(self) -> "Config":
-        if not self.DATABASE_URL:
-            self.DATABASE_URL = (
-                f"postgresql+asyncpg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}"
-                f"@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
-            )
-        return self
+logger = logging.getLogger(__name__)
 
 
-config = Config()  # type: ignore[call-arg]  # BOT_TOKEN is read from the environment
+class Settings(BaseSettings):
+    # env_ignore_empty: an empty `KEY=` line counts as unset. Process env wins over the .env file.
+    model_config = SettingsConfigDict(env_file=ROOT_PATH / ".env", env_ignore_empty=True, extra="ignore")
+
+    BOT_TOKEN: SecretStr
+    DATABASE_URL: SecretStr
+    DEBUG: bool = False
+
+
+def load_settings() -> Settings:
+    try:
+        return Settings()  # type: ignore[call-arg]
+    except ValidationError as exc:
+        for error in exc.errors():
+            field = ".".join(map(str, error["loc"])) or "unknown"
+            logger.error("Invalid configuration for %s: %s", field, error["msg"])
+        raise SystemExit(1) from exc
+
+
+settings = load_settings()

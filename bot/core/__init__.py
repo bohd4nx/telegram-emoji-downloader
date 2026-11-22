@@ -1,6 +1,14 @@
-from .config import config
+from .config import settings
+from .constants import POLLING_TASKS_CONCURRENCY_LIMIT, POLLING_TIMEOUT
 from .logging import logger, setup_logging
-from .polling import ResilientDispatcher
-from .setup import setup_bot_profile
+from .setup import cleanup_bot_commands, setup_bot_commands
 
-__all__ = ["ResilientDispatcher", "config", "logger", "setup_bot_profile", "setup_logging"]
+__all__ = [
+    "POLLING_TASKS_CONCURRENCY_LIMIT",
+    "POLLING_TIMEOUT",
+    "cleanup_bot_commands",
+    "logger",
+    "settings",
+    "setup_bot_commands",
+    "setup_logging",
+]

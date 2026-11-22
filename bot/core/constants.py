@@ -1,27 +1,27 @@
-# fallback language when the user has no locale or it is not supported.
-DEFAULT_LOCALE = "en"
+from pathlib import Path
 
-# list of allowed locales to ensure only bundled translations are used.
-SUPPORTED_LOCALES = frozenset({"en", "ru"})
+from aiogram.types import BotCommand
 
-# maximum allowed archive size to prevent oversized uploads.
-MAX_ARCHIVE_SIZE = 45 * 1024 * 1024  # 45 MB
+ROOT_PATH: Path = Path(__file__).resolve().parents[2]
+LOCALES_PATH: str = str(ROOT_PATH / "locales" / "{locale}" / "LC_MESSAGES")
 
-# how many files of one request are downloaded at the same time.
-DOWNLOAD_CONCURRENCY = 8
+POLLING_TIMEOUT: int = 30
+POLLING_TASKS_CONCURRENCY_LIMIT: int = 100
 
-# how many requests (packs, emoji batches) are processed at the same time across all users;
-# bounds memory since every request holds its files and archives in RAM.
-MAX_ACTIVE_JOBS = 4
-
-# metadata for exported Lottie animations to keep generation details consistent.
-LOTTIE_MANIFEST = {
-    "version": "2026.2.1",
-    "generator": "EmojiSaverBot",
-    "author": "https://github.com/bohd4nx",
-    "description": ("Telegram bot for extracting and converting animated emoji and stickers into Lottie/JSON/TGS formats"),
-    "generator_url": "https://github.com/bohd4nx/EmojiSaver",
-    "created": "via https://t.me/EmojiSaverBot",
-    "revision": 1,
-    "animations": [{"id": "animation", "direction": 1, "speed": 1, "layers": []}],
+BOT_COMMANDS: dict[str, list[BotCommand]] = {
+    "": [
+        BotCommand(command="start", description="🏠 Main menu | Главное меню"),
+        BotCommand(command="help", description="❓ Help | Помощь"),
+        BotCommand(command="language", description="🌐 Language | Язык"),
+    ],
+    "en": [
+        BotCommand(command="start", description="🏠 Main menu"),
+        BotCommand(command="help", description="❓ Help"),
+        BotCommand(command="language", description="🌐 Language"),
+    ],
+    "ru": [
+        BotCommand(command="start", description="🏠 Главное меню"),
+        BotCommand(command="help", description="❓ Помощь"),
+        BotCommand(command="language", description="🌐 Язык"),
+    ],
 }
