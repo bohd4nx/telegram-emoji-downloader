@@ -1,28 +1,29 @@
 import asyncio
 import logging
+import re
 from pathlib import Path
 
-import filetype  # type: ignore[import-untyped]
 from aiogram import Bot
 from aiogram.exceptions import TelegramAPIError
 
 from bot.database import StickerRef
-from bot.services.converter import convert_tgs_async
+from bot.services.converter import convert_async
 from bot.services.converter.constants import GZIP_MAGIC, ZLIB_CMF, ZLIB_FLG
 
-from .constants import DOWNLOAD_CONCURRENCY
+from .constants import DOWNLOAD_CONCURRENCY, EXTENSION_PATTERN, FALLBACK_EXTENSION
 from .schemas import ProgressCallback, StickerFiles
 
 logger = logging.getLogger(__name__)
 
+EXTENSION = re.compile(EXTENSION_PATTERN)
 
-def detect_format(data: bytes, fallback_path: str = "") -> str:
+
+def detect_format(data: bytes, file_path: str = "") -> str:
+    # Telegram names the file by its real type, except that old TGS files sometimes come without a usable suffix.
     if len(data) >= 2 and (data[:2] == GZIP_MAGIC or (data[0] == ZLIB_CMF and data[1] in ZLIB_FLG)):
         return "tgs"
-    kind = filetype.guess(data)
-    if kind is not None:
-        return str(kind.extension)
-    return Path(fallback_path).suffix.lstrip(".").lower() or "dat"
+    suffix = Path(file_path).suffix.lstrip(".").lower()
+    return suffix if EXTENSION.fullmatch(suffix) else FALLBACK_EXTENSION
 
 
 async def download_sticker(bot: Bot, sticker: StickerRef) -> tuple[bytes, str] | None:
@@ -44,10 +45,8 @@ async def fetch_sticker(bot: Bot, sticker: StickerRef) -> StickerFiles | None:
         name = sticker.file_unique_id
         files = {f"{name}.{ext}": data}
 
-        converted: dict[str, bytes] = {}
-        if ext == "tgs":
-            converted = await convert_tgs_async(data)
-            files |= {f"{name}.{conv_ext}": content for conv_ext, content in converted.items()}
+        converted = await convert_async(ext, data)
+        files |= {f"{name}.{conv_ext}": content for conv_ext, content in converted.items() if f"{name}.{conv_ext}" not in files}
 
         return StickerFiles(name=name, files=files, converted=bool(converted))
     except TelegramAPIError as exc:
@@ -62,6 +61,7 @@ async def fetch_all(
     stickers: list[StickerRef],
     on_progress: ProgressCallback | None = None,
 ) -> list[StickerFiles]:
+    stickers = list({sticker.file_unique_id: sticker for sticker in stickers}.values())
     semaphore = asyncio.Semaphore(DOWNLOAD_CONCURRENCY)
     done = 0
 

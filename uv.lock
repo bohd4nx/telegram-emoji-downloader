@@ -288,9 +288,7 @@ dependencies = [
     { name = "aiogram-i18n", extra = ["compiler"] },
     { name = "alembic" },
     { name = "asyncpg" },
-    { name = "filetype" },
     { name = "pillow" },
-    { name = "pydantic" },
     { name = "pydantic-settings" },
     { name = "rlottie-python" },
     { name = "sqlalchemy", extra = ["asyncio"] },
@@ -309,9 +307,7 @@ requires-dist = [
     { name = "aiogram-i18n", extras = ["compiler"], specifier = ">=1.5" },
     { name = "alembic", specifier = ">=1.20.1" },
     { name = "asyncpg", specifier = ">=0.32.0" },
-    { name = "filetype", specifier = ">=1.2.0" },
     { name = "pillow", specifier = ">=13.0.0" },
-    { name = "pydantic", specifier = ">=2.14.4" },
     { name = "pydantic-settings", specifier = ">=2.16.3" },
     { name = "rlottie-python", specifier = ">=1.3.8" },
     { name = "sqlalchemy", extras = ["asyncio"], specifier = ">=2.1.9" },
@@ -322,15 +318,6 @@ dev = [
     { name = "mypy" },
     { name = "ruff" },
     { name = "vulture" },
-]
-
-[[package]]
-name = "filetype"
-version = "1.2.0"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/bb/29/745f7d30d47fe0f251d3ad3dc2978a23141917661998763bebb6da007eb1/filetype-1.2.0.tar.gz", hash = "sha256:66b56cd6474bf41d8c54660347d37afcc3f7d1970648de365c102ef77548aadb", size = 998020, upload-time = "2022-11-02T17:34:04.141Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/18/79/1b8fa1bb3568781e84c9200f951c735f3f157429f44be0495da55894d620/filetype-1.2.0-py2.py3-none-any.whl", hash = "sha256:7ce71b6880181241cf7ac8697a2f1eb6a8bd9b429f7ad6d27b8db9ba5f1c2d25", size = 19970, upload-time = "2022-11-02T17:34:01.425Z" },
 ]
 
 [[package]]

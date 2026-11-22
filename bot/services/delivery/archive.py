@@ -6,41 +6,50 @@ from aiogram import Bot
 from aiogram.enums import ChatAction
 from aiogram.types import BufferedInputFile, ReplyParameters
 
-from .constants import MAX_ARCHIVE_SIZE, MAX_TITLE_LENGTH, UNSAFE_FILENAME_CHARS
+from .constants import MAX_ARCHIVE_SIZE, MAX_FILENAME_BYTES, STORED_EXTENSIONS, UNSAFE_FILENAME_CHARS
 from .schemas import StickerFiles
 
 UNSAFE_FILENAME = re.compile(UNSAFE_FILENAME_CHARS)
 
 
+def compression_for(filename: str) -> int:
+    return zipfile.ZIP_STORED if filename.rpartition(".")[2] in STORED_EXTENSIONS else zipfile.ZIP_DEFLATED
+
+
 def build_archives(items: list[StickerFiles]) -> list[bytes]:
-    """Pack items into zip parts ≤ MAX_ARCHIVE_SIZE. Blocking — call via asyncio.to_thread."""
+    """Pack items into zip parts that stay under MAX_ARCHIVE_SIZE. Blocking: call via asyncio.to_thread.
+
+    Parts are cut by the raw size of what goes in, before an item is added, so a part can't overshoot
+    the upload limit; a single item larger than the limit still gets a part of its own.
+    """
     archives: list[bytes] = []
     buf = io.BytesIO()
-    zf = zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED)
-    has_entries = False
+    zf = zipfile.ZipFile(buf, "w")
+    raw_size = 0
 
     for item in items:
-        for filename, data in item.files.items():
-            path = filename if len(items) == 1 else f"{item.name}/{filename}"
-            zf.writestr(path, data)
-        has_entries = True
-
-        if buf.tell() > MAX_ARCHIVE_SIZE:
+        item_size = sum(len(data) for data in item.files.values())
+        if raw_size and raw_size + item_size > MAX_ARCHIVE_SIZE:
             zf.close()
             archives.append(buf.getvalue())
             buf = io.BytesIO()
-            zf = zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED)
-            has_entries = False
+            zf = zipfile.ZipFile(buf, "w")
+            raw_size = 0
+        for filename, data in item.files.items():
+            path = filename if len(items) == 1 else f"{item.name}/{filename}"
+            zf.writestr(path, data, compress_type=compression_for(filename))
+        raw_size += item_size
 
     zf.close()
-    if has_entries:
+    if raw_size:
         archives.append(buf.getvalue())
     return archives
 
 
 def archive_name(title: str | None, username: str | None) -> str:
-    base = f"@{username}"
-    clean = UNSAFE_FILENAME.sub("", title or "").strip()[:MAX_TITLE_LENGTH]
+    base = f"@{username}" if username else "stickers"
+    clean = " ".join(UNSAFE_FILENAME.sub("", title or "").split())
+    clean = clean.encode()[:MAX_FILENAME_BYTES].decode(errors="ignore").strip(". ")
     return f"{clean} by {base}" if clean else base
 
 
