@@ -67,11 +67,12 @@ async def fetch_sticker(bot: Bot, sticker: StickerRef) -> StickerFiles | None:
             return None
         files, converted = main
 
-        effect = await fetch_effect(bot, sticker)
-        if effect is not None:
-            effect_files, effect_converted = effect
-            files |= effect_files
-            converted = converted and effect_converted
+        # Premium effects are paused: they are delivered as loose files, not composed onto the sticker yet.
+        # effect = await fetch_effect(bot, sticker)
+        # if effect is not None:
+        #     effect_files, effect_converted = effect
+        #     files |= effect_files
+        #     converted = converted and effect_converted
 
         return StickerFiles(name=sticker.file_unique_id, files=files, converted=converted)
     except TelegramAPIError as exc:
