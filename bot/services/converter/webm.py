@@ -3,7 +3,7 @@ import logging
 import tempfile
 from pathlib import Path
 
-from .constants import CONVERTER_WORKERS, FFMPEG, FFMPEG_TIMEOUT, GIF_ARGS, MP4_ARGS
+from .constants import CONVERTER_WORKERS, FFMPEG, FFMPEG_FILTER, FFMPEG_OUTPUTS, FFMPEG_TIMEOUT
 
 logger = logging.getLogger(__name__)
 
@@ -11,34 +11,8 @@ logger = logging.getLogger(__name__)
 ffmpeg_slots = asyncio.Semaphore(CONVERTER_WORKERS)
 
 
-async def run_ffmpeg(source: Path, target: Path, args: list[str]) -> bool:
-    process = await asyncio.create_subprocess_exec(
-        FFMPEG,
-        "-v",
-        "error",
-        "-y",
-        "-i",
-        str(source),
-        *args,
-        str(target),
-        stdout=asyncio.subprocess.DEVNULL,
-        stderr=asyncio.subprocess.PIPE,
-    )
-    try:
-        _, stderr = await asyncio.wait_for(process.communicate(), FFMPEG_TIMEOUT)
-    except TimeoutError:
-        process.kill()
-        await process.wait()
-        logger.warning("ffmpeg timed out converting to %s", target.suffix)
-        return False
-    if process.returncode != 0:
-        logger.warning("ffmpeg failed for %s: %s", target.suffix, stderr.decode(errors="replace").strip()[:200])
-        return False
-    return True
-
-
 async def convert_webm(data: bytes) -> dict[str, bytes]:
-    """Convert a WebM sticker to MP4 and GIF; a format that fails is left out. Empty if ffmpeg is missing."""
+    """Convert a WebM sticker to MP4 and GIF in one ffmpeg run. Empty if ffmpeg fails or is missing."""
     async with ffmpeg_slots:
         with tempfile.TemporaryDirectory() as directory:
             return await convert_in(Path(directory), data)
@@ -47,13 +21,24 @@ async def convert_webm(data: bytes) -> dict[str, bytes]:
 async def convert_in(root: Path, data: bytes) -> dict[str, bytes]:
     source = root / "source.webm"
     await asyncio.to_thread(source.write_bytes, data)
-    result: dict[str, bytes] = {}
-    for ext, args in (("mp4", MP4_ARGS), ("gif", GIF_ARGS)):
-        target = root / f"out.{ext}"
-        try:
-            if await run_ffmpeg(source, target, args):
-                result[ext] = await asyncio.to_thread(target.read_bytes)
-        except FileNotFoundError:
-            logger.error("ffmpeg is not installed; WebM stickers stay unconverted")
-            return {}
-    return result
+    command = [FFMPEG, "-v", "error", "-y", "-i", str(source), "-filter_complex", FFMPEG_FILTER]
+    for ext, args in FFMPEG_OUTPUTS:
+        command += [*args, str(root / f"out.{ext}")]
+    try:
+        process = await asyncio.create_subprocess_exec(
+            *command, stdout=asyncio.subprocess.DEVNULL, stderr=asyncio.subprocess.PIPE
+        )
+    except FileNotFoundError:
+        logger.error("ffmpeg is not installed; WebM stickers stay unconverted")
+        return {}
+    try:
+        _, stderr = await asyncio.wait_for(process.communicate(), FFMPEG_TIMEOUT)
+    except TimeoutError:
+        process.kill()
+        await process.wait()
+        logger.warning("ffmpeg timed out")
+        return {}
+    if process.returncode != 0:
+        logger.warning("ffmpeg failed: %s", stderr.decode(errors="replace").strip()[:200])
+        return {}
+    return {ext: await asyncio.to_thread((root / f"out.{ext}").read_bytes) for ext, _ in FFMPEG_OUTPUTS}

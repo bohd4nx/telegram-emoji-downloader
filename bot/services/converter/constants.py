@@ -24,22 +24,18 @@ FFMPEG: str = "ffmpeg"
 FFMPEG_TIMEOUT: float = 60.0
 MP4_CRF: int = 23
 
-# yuv420p needs even dimensions; MP4 can't carry the transparency of VP9 alpha, so it is lost there by design.
-MP4_ARGS: list[str] = [
-    "-vf",
-    "scale=trunc(iw/2)*2:trunc(ih/2)*2",
-    "-c:v",
-    "libx264",
-    "-pix_fmt",
-    "yuv420p",
-    "-crf",
-    str(MP4_CRF),
-]
-GIF_FILTER: str = (
-    f"fps={GIF_FPS},scale='min({GIF_SIZE},iw)':-2:flags=lanczos,split[a][b];"
-    "[a]palettegen=reserve_transparent=1[p];[b][p]paletteuse"
+# One ffmpeg run produces both outputs, so the video is decoded once. yuv420p needs even dimensions,
+# and MP4 can't carry the transparency of VP9 alpha, so it is lost there by design.
+FFMPEG_FILTER: str = (
+    "[0:v]split=2[m][g];"
+    "[m]scale=trunc(iw/2)*2:trunc(ih/2)*2[mp4v];"
+    f"[g]fps={GIF_FPS},scale='min({GIF_SIZE},iw)':-2:flags=lanczos,split[a][b];"
+    "[a]palettegen=reserve_transparent=1[p];[b][p]paletteuse[gifv]"
 )
-GIF_ARGS: list[str] = ["-filter_complex", GIF_FILTER, "-loop", "0"]
+FFMPEG_OUTPUTS: list[tuple[str, list[str]]] = [
+    ("mp4", ["-map", "[mp4v]", "-c:v", "libx264", "-pix_fmt", "yuv420p", "-crf", str(MP4_CRF)]),
+    ("gif", ["-map", "[gifv]", "-loop", "0"]),
+]
 
 CONVERTER_WORKERS: int = min(4, os.process_cpu_count() or 1)
 
