@@ -1,7 +1,9 @@
 from bot.database.download import ContentKind
 
-# Bots can upload 50 MB; the headroom covers zip headers.
-MAX_ARCHIVE_SIZE: int = 48 * 1024 * 1024
+# Bots can upload 50 MB; the headroom covers the zip end record and any gap between the size estimate and the real zip.
+MAX_ARCHIVE_SIZE: int = 49 * 1024 * 1024
+# Local file header (30) plus central directory entry (46); the file name is stored in both on top of this.
+ZIP_ENTRY_OVERHEAD: int = 76
 
 # Already compressed: deflating these burns CPU for no size gain.
 STORED_EXTENSIONS: frozenset[str] = frozenset({"tgs", "webm", "webp", "png", "gif", "mp4", "lottie"})

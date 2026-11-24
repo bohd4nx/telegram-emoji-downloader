@@ -22,7 +22,7 @@ TGS · JSON · Lottie · PNG · GIF
 - Custom (premium) emoji from any message
 - Stickers, sent or forwarded
 - Full packs by `t.me/addstickers/…` or `t.me/addemoji/…` link
-- Archives over 48 MB are split into parts
+- Archives over 49 MB are split into parts
 - English and Russian, set automatically and switchable with `/language`
 
 ## How it works
