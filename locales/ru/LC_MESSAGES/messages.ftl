@@ -1,7 +1,7 @@
 start-message =
     <tg-emoji emoji-id="5258011929993026890">👋</tg-emoji> <b>Здравствуйте, {$name}!</b>
 
-    Скачивайте и конвертируйте стикеры и эмодзи Telegram в форматы <code>TGS</code>, <code>JSON</code>, <code>Lottie</code> и <code>PNG</code>.
+    Скачивайте и конвертируйте стикеры и эмодзи Telegram в форматы <code>TGS</code>, <code>JSON</code>, <code>Lottie</code>, <code>PNG</code> и <code>GIF</code>.
 
     <tg-emoji emoji-id="5260687681733533075">🔄</tg-emoji> <b>Что я умею</b>
     <blockquote>• Извлекаю кастомные (премиум) эмодзи из сообщений
@@ -20,7 +20,7 @@ help-message =
     <blockquote>Отправьте любое сообщение с кастомными (премиум) эмодзи. Все они будут извлечены и конвертированы автоматически.</blockquote>
 
     <tg-emoji emoji-id="5411585799990830248">2️⃣</tg-emoji> <b>Стикеры</b>
-    <blockquote>Отправьте или перешлите любой стикер. Анимированные будут конвертированы в JSON, Lottie и PNG.</blockquote>
+    <blockquote>Отправьте или перешлите любой стикер. Анимированные будут конвертированы в JSON, Lottie, PNG и GIF.</blockquote>
 
     <tg-emoji emoji-id="5409189019261103031">3️⃣</tg-emoji> <b>Паки</b>
     <blockquote>Вставьте ссылку на пак, и весь пак будет скачан и конвертирован:
@@ -34,7 +34,8 @@ help-message =
     <blockquote expandable><code>.tgs</code> — оригинальный формат Telegram
     <code>.json</code> — несжатая Lottie-анимация
     <code>.lottie</code> — сжатый Lottie (формат LottieFiles)
-    <code>.png</code> — первый кадр, 512×512 px</blockquote>
+    <code>.png</code> — первый кадр, 512×512 px
+    <code>.gif</code> — анимация, 256 px по ширине</blockquote>
 
 processing = <tg-emoji emoji-id="5258514780469075716">📂</tg-emoji> <b>Обрабатываю ваш запрос…</b>
 

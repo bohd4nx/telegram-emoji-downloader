@@ -1,7 +1,7 @@
 start-message =
     <tg-emoji emoji-id="5258011929993026890">👋</tg-emoji> <b>Hello, {$name}!</b>
 
-    Download and convert Telegram stickers and emoji to <code>TGS</code>, <code>JSON</code>, <code>Lottie</code> and <code>PNG</code>.
+    Download and convert Telegram stickers and emoji to <code>TGS</code>, <code>JSON</code>, <code>Lottie</code>, <code>PNG</code> and <code>GIF</code>.
 
     <tg-emoji emoji-id="5260687681733533075">🔄</tg-emoji> <b>What I can do</b>
     <blockquote>• Extract custom (premium) emoji from messages
@@ -20,7 +20,7 @@ help-message =
     <blockquote>Send any message with custom (premium) emoji. All of them are extracted and converted automatically.</blockquote>
 
     <tg-emoji emoji-id="5411585799990830248">2️⃣</tg-emoji> <b>Stickers</b>
-    <blockquote>Send or forward any sticker. Animated ones are converted to JSON, Lottie and PNG.</blockquote>
+    <blockquote>Send or forward any sticker. Animated ones are converted to JSON, Lottie, PNG and GIF.</blockquote>
 
     <tg-emoji emoji-id="5409189019261103031">3️⃣</tg-emoji> <b>Packs</b>
     <blockquote>Paste a pack link and the whole pack is downloaded and converted:
@@ -34,7 +34,8 @@ help-message =
     <blockquote expandable><code>.tgs</code> — original Telegram format
     <code>.json</code> — uncompressed Lottie animation
     <code>.lottie</code> — compressed Lottie (LottieFiles format)
-    <code>.png</code> — first frame, 512×512 px</blockquote>
+    <code>.png</code> — first frame, 512×512 px
+    <code>.gif</code> — animation, 256 px wide</blockquote>
 
 processing = <tg-emoji emoji-id="5258514780469075716">📂</tg-emoji> <b>Processing your request…</b>
 
