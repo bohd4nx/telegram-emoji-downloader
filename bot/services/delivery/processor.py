@@ -11,6 +11,7 @@ from bot.database.download import ContentKind, DownloadCreate
 from bot.services.language import i18n_core
 
 from .archive import build_archives, send_archives
+from .cache import cache_key, remember, send_from_cache
 from .constants import PROGRESS_EDIT_INTERVAL
 from .downloader import fetch_all
 
@@ -70,12 +71,23 @@ async def deliver(bot: Bot, job: Job) -> bool:
                 message_id=job.status_message_id,
             )
 
+    key = cache_key(job, stickers)
+    if key and await send_from_cache(bot, job, key):
+        return True
+
     items = await fetch_all(bot, stickers, on_progress)
     if not items:
         logger.warning("Job %s: nothing to send for %s %s", job.id, job.kind, job.content_id)
         return False
 
     archives = await asyncio.to_thread(build_archives, items)
-    warning = None if all(item.converted for item in items) else i18n_core.get("format-warning", job.language)
-    await send_archives(bot, job.chat_id, job.message_id, archives, title=job.title, caption=warning)
+    all_converted = all(item.converted for item in items)
+    warning = None if all_converted else i18n_core.get("format-warning", job.language)
+    file_ids = await send_archives(bot, job.chat_id, job.message_id, archives, title=job.title, caption=warning)
+
+    # Only a complete, fully converted result is cached: a partial one would be served to everyone from then on,
+    # and the warning caption can't be resent with a file id.
+    complete = len(items) == len({sticker.file_unique_id for sticker in stickers}) and len(file_ids) == len(archives)
+    if key and all_converted and complete:
+        await remember(key, file_ids)
     return True

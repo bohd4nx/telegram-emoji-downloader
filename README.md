@@ -36,7 +36,7 @@ flowchart LR
     W -->|zip archives| U
 ```
 
-The bot only queues the request. The worker downloads the files, converts them in a process pool and sends the archives back. Each user can have one job in the queue at a time. Jobs interrupted by a crash are retried on restart.
+The bot only queues the request. The worker downloads the files, converts them in a process pool and sends the archives back. Each user can have one job in the queue at a time. Jobs interrupted by a crash are retried on restart. Delivered packs are remembered by their Telegram file ids, so asking for the same pack again is resent without downloading or converting anything; a changed pack is rebuilt.
 
 ## Quick start
 

@@ -61,12 +61,26 @@ async def send_archives(
     *,
     title: str | None = None,
     caption: str | None = None,
-) -> None:
+) -> list[str]:
+    """Upload the archives and return the Telegram file ids of what was sent, for resending without an upload."""
     name = archive_name(title, (await bot.me()).username)
     total = len(archives)
     reply = ReplyParameters(message_id=reply_to, allow_sending_without_reply=True)
+    file_ids: list[str] = []
 
     for idx, data in enumerate(archives, 1):
         filename = f"{name} (part {idx}).zip" if total > 1 else f"{name}.zip"
         await bot.send_chat_action(chat_id, ChatAction.UPLOAD_DOCUMENT)
-        await bot.send_document(chat_id, BufferedInputFile(data, filename=filename), caption=caption, reply_parameters=reply)
+        sent = await bot.send_document(
+            chat_id, BufferedInputFile(data, filename=filename), caption=caption, reply_parameters=reply
+        )
+        if sent.document:
+            file_ids.append(sent.document.file_id)
+    return file_ids
+
+
+async def send_cached(bot: Bot, chat_id: int, reply_to: int, file_ids: list[str]) -> None:
+    reply = ReplyParameters(message_id=reply_to, allow_sending_without_reply=True)
+    for file_id in file_ids:
+        await bot.send_chat_action(chat_id, ChatAction.UPLOAD_DOCUMENT)
+        await bot.send_document(chat_id, file_id, reply_parameters=reply)

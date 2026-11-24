@@ -1,3 +1,5 @@
+from bot.database.download import ContentKind
+
 # Bots can upload 50 MB; the headroom covers zip headers.
 MAX_ARCHIVE_SIZE: int = 48 * 1024 * 1024
 
@@ -19,3 +21,6 @@ MAX_FILENAME_BYTES: int = 200
 
 # Premium stickers carry a full-screen effect; it is stored next to the sticker under this name suffix.
 EFFECT_SUFFIX: str = "_effect"
+
+# Packs are the heavy jobs and nearly half of them are repeats; emoji sets and lone stickers rarely match exactly.
+CACHED_KINDS: frozenset[ContentKind] = frozenset({ContentKind.PACK})
